@@ -308,9 +308,15 @@ const DataService = {
             }
         }
 
-        // Kiểm tra kết nối máy chủ và nạp bản mới nhất từ ổ cứng
+        // Kiểm tra kết nối máy chủ và nạp bản mới nhất từ ổ cứng (nếu ở local)
         await this.checkServerConnection();
         await this.refreshFromDiskJson();
+
+        // Nếu có cài đặt Google Sheets trực tuyến: Tự động tải bản mới nhất từ Google Sheets
+        const sheetUrl = this.getGoogleSheetUrl();
+        if (sheetUrl && sheetUrl.startsWith('http')) {
+            await this.fetchFromGoogleSheet(sheetUrl);
+        }
     },
 
     /**
@@ -1293,18 +1299,22 @@ const DataService = {
             const res = await fetch(sheetUrl);
             const json = await res.json();
             if (json && json.status === 'success' && json.data) {
-                // Nhận dữ liệu từ Google Sheet và gộp vào hệ thống
+                // Nhận dữ liệu từ Google Sheet và lưu an toàn vào hệ thống
                 if (json.data.whitelist && json.data.whitelist.length > 0) {
-                    this.saveWhitelist(json.data.whitelist);
+                    localStorage.setItem(STORAGE_KEYS.WHITELIST, JSON.stringify(json.data.whitelist));
                 }
                 if (json.data.categories && json.data.categories.length > 0) {
-                    this.saveCategories(json.data.categories);
+                    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(json.data.categories));
                 }
                 if (json.data.resources && json.data.resources.length > 0) {
-                    this.saveResources(json.data.resources);
+                    localStorage.setItem(STORAGE_KEYS.RESOURCES, JSON.stringify(json.data.resources));
                 }
-                if (json.data.bookings && json.data.bookings.length > 0) {
-                    this.saveBookings(json.data.bookings);
+                if (json.data.bookings) {
+                    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(json.data.bookings));
+                }
+                localStorage.setItem('weblich_sheet_file_timestamp', new Date().toISOString());
+                if (typeof window.onExternalDataUpdate === 'function') {
+                    window.onExternalDataUpdate();
                 }
                 return { success: true };
             }
