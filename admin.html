@@ -1282,9 +1282,10 @@
                 return;
             }
             DataService.setGoogleSheetUrl(url);
-            showToast('Đang đẩy dữ liệu lên Google Sheet...', 'info');
+            checkAutoSaveEnvironment();
+            showToast('Đang đẩy toàn bộ dữ liệu hiện tại lên Google Sheet...', 'info');
             await DataService.pushToGoogleSheetAsync(url);
-            showToast('Đã lưu và gửi dữ liệu lên Google Sheet!', 'success');
+            showToast('Đã lưu cấu hình và đồng bộ thành công lên Google Sheet!', 'success');
         }
 
         async function pullFromGoogleSheet() {

@@ -74,16 +74,40 @@ function ensureSheetsExist(ss) {
 }
 
 function readSheetData(sheet) {
+  if (!sheet) return [];
   var rows = sheet.getDataRange().getValues();
   if (rows.length <= 1) return [];
   var headers = rows[0];
   var list = [];
   for (var i = 1; i < rows.length; i++) {
     var obj = {};
+    var hasValue = false;
     for (var j = 0; j < headers.length; j++) {
-      obj[headers[j]] = rows[i][j];
+      var val = rows[i][j];
+      if (val !== "" && val !== null && val !== undefined) hasValue = true;
+      
+      // Xử lý tự động kiểu Date của Google Sheets sang định dạng chuẩn YYYY-MM-DD hoặc HH:mm
+      if (val instanceof Date) {
+        var hName = String(headers[j]).toLowerCase();
+        if (hName.indexOf('time') !== -1 || hName.indexOf('gio') !== -1) {
+          var hh = String(val.getHours()).padStart(2, '0');
+          var mm = String(val.getMinutes()).padStart(2, '0');
+          val = hh + ':' + mm;
+        } else {
+          var y = val.getFullYear();
+          var m = String(val.getMonth() + 1).padStart(2, '0');
+          var d = String(val.getDate()).padStart(2, '0');
+          val = y + '-' + m + '-' + d;
+        }
+      }
+      
+      // Xử lý chuỗi JSON lưu trong ô (fields, details...) sang Object/Array
+      if (typeof val === 'string' && (val.startsWith('{') || val.startsWith('['))) {
+        try { val = JSON.parse(val); } catch(e) {}
+      }
+      obj[headers[j]] = val;
     }
-    list.push(obj);
+    if (hasValue) list.push(obj);
   }
   return list;
 }

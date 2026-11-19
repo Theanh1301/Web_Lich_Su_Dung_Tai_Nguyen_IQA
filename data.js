@@ -890,10 +890,17 @@ const DataService = {
     },
 
     getGoogleSheetUrl() {
-        return localStorage.getItem(STORAGE_KEYS.GOOGLE_SHEET_URL) || '';
+        return localStorage.getItem(STORAGE_KEYS.GOOGLE_SHEET_URL)
+            || (window.SHARED_SHEET_DATA && window.SHARED_SHEET_DATA.googleSheetUrl)
+            || '';
     },
     setGoogleSheetUrl(url) {
-        localStorage.setItem(STORAGE_KEYS.GOOGLE_SHEET_URL, url.trim());
+        const clean = (url || '').trim();
+        localStorage.setItem(STORAGE_KEYS.GOOGLE_SHEET_URL, clean);
+        if (window.SHARED_SHEET_DATA) {
+            window.SHARED_SHEET_DATA.googleSheetUrl = clean;
+        }
+        this.updateServerStatusBadge(this.isServerConnected);
     },
 
     // -------------------------------------------------------------------------
@@ -906,6 +913,7 @@ const DataService = {
         const payload = {
             updatedAt: new Date().toISOString(),
             version: "1.0",
+            googleSheetUrl: this.getGoogleSheetUrl(),
             whitelist: this.getWhitelist(),
             categories: this.getCategories(),
             resources: this.getResources(),
@@ -1274,11 +1282,12 @@ const DataService = {
     // ĐỒNG BỘ TRỰC TUYẾN VỚI GOOGLE SHEETS (QUA APPS SCRIPT WEB APP)
     // -------------------------------------------------------------------------
     async pushToGoogleSheetAsync(sheetUrl, snapshotData) {
+        if (!sheetUrl || !sheetUrl.startsWith('http')) return;
         try {
             await fetch(sheetUrl, {
                 method: 'POST',
                 mode: 'no-cors', // Apps script redirect
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     action: 'SYNC_ALL',
                     data: snapshotData || {
@@ -1289,6 +1298,7 @@ const DataService = {
                     }
                 })
             });
+            console.log('✅ Đã đồng bộ thành công lên Google Sheets');
         } catch (e) {
             console.error('Push to Google Sheet error:', e);
         }
