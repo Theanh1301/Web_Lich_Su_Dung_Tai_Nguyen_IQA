@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tài nguyên Viện Quản lý chất lượng và Khảo thí</title>
+
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons 6.5 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ================= APP HEADER ================= -->
+    <header class="app-header">
+        <div class="header-container" style="justify-content: space-between;">
+            <div class="brand-section">
+                <div class="logo-badge">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <div>
+                    <h1 class="brand-title">Quản lý tài nguyên Viện Quản lý chất lượng và Khảo thí</h1>
+                </div>
+            </div>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
+                <a href="admin.html" class="btn btn-secondary btn-sm" onclick="try{sessionStorage.removeItem('weblich_auth_user');localStorage.removeItem('weblich_auth_user');}catch(e){}" style="display: inline-flex; align-items: center; gap: 7px; font-weight: 600;">
+                    <i class="fa-solid fa-user-shield" style="color: #2563eb;"></i> Đăng Nhập Quản Trị
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= SUB-TOOLBAR ================= -->
+    <section class="sub-toolbar">
+        <div class="toolbar-container">
+            <!-- 1. Bộ điều hướng Lịch 12 Tháng & Ngày -->
+            <div class="date-navigator">
+                <button class="btn-nav" onclick="navigateMonth(-1)" title="Tháng trước">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                
+                <!-- Chọn 12 Tháng -->
+                <select id="monthSelector" class="form-control select-compact" onchange="onMonthChange(this.value)">
+                    <option value="0">Tháng 1</option>
+                    <option value="1">Tháng 2</option>
+                    <option value="2">Tháng 3</option>
+                    <option value="3">Tháng 4</option>
+                    <option value="4">Tháng 5</option>
+                    <option value="5">Tháng 6</option>
+                    <option value="6">Tháng 7</option>
+                    <option value="7">Tháng 8</option>
+                    <option value="8">Tháng 9</option>
+                    <option value="9">Tháng 10</option>
+                    <option value="10">Tháng 11</option>
+                    <option value="11">Tháng 12</option>
+                </select>
+
+                <!-- Chọn Năm -->
+                <select id="yearSelector" class="form-control select-compact" onchange="onYearChange(this.value)">
+                    <option value="2025">Năm 2025</option>
+                    <option value="2026">Năm 2026</option>
+                    <option value="2027">Năm 2027</option>
+                    <option value="2028">Năm 2028</option>
+                </select>
+
+                <button class="btn-nav" onclick="navigateMonth(1)" title="Tháng tiếp theo">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                <button class="btn btn-secondary btn-sm" onclick="goToCurrentMonth()">
+                    <i class="fa-regular fa-calendar-check"></i> Tháng Hiện Tại
+                </button>
+            </div>
+
+            <!-- 2. Chọn Chế Độ Xem (Cả Tháng vs Chi Tiết Ngày) -->
+            <div class="view-mode-toggle">
+                <button id="btnViewMonth" class="view-btn active" onclick="switchViewMode('MONTH')">
+                    <i class="fa-regular fa-calendar-days"></i> Xem Cả Tháng
+                </button>
+                <button id="btnViewDay" class="view-btn" onclick="switchViewMode('DAY')">
+                    <i class="fa-regular fa-clock"></i> Xem Chi Tiết Ngày
+                </button>
+            </div>
+
+            <!-- 3. Chọn Hiển Thị Theo Bảng Dịch Vụ -->
+            <div class="service-table-selector">
+                <label for="serviceTableSelect" class="selector-label">
+                    <i class="fa-solid fa-table-list"></i> Bảng dịch vụ:
+                </label>
+                <select id="serviceTableSelect" class="form-control select-service" onchange="onServiceTableChange(this.value)">
+                    <option value="ALL">📋 Tất Cả Các Dịch Vụ</option>
+                    <!-- Render tự động các bảng dịch vụ -->
+                </select>
+            </div>
+
+            <!-- 4. Huy hiệu trạng thái Tự động cập nhật -->
+            <div class="auto-save-pill" id="autoSavePill" title="Dữ liệu hiển thị tự động cập nhật thời gian thực từ trang quản trị">
+                <span class="pulse-dot"></span>
+                <span>Dữ liệu: <b>Thời gian thực</b></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="main-container">
+        <!-- Banner thông tin bảng dịch vụ đang chọn -->
+        <div id="activeServiceInfoBanner" class="service-banner" style="display: none;">
+            <!-- Render từ JS -->
+        </div>
+
+        <!-- Timeline / Calendar Scheduler Container -->
+        <div class="scheduler-card">
+            <div class="scheduler-wrapper" id="schedulerWrapper">
+                <div class="timeline-table" id="timelineTable">
+                    <!-- Hàng Tiêu Đề Cột (Ngày trong tháng hoặc Giờ trong ngày) -->
+                    <div class="timeline-header-row" id="timelineHeaderRow">
+                        <div class="resource-header-cell" id="resourceHeaderTitle">
+                            <i class="fa-solid fa-cubes-stacked"></i> TÀI NGUYÊN / ĐỊA ĐIỂM
+                        </div>
+                        <div class="columns-track" id="columnsTrack">
+                            <!-- Render tự động 30/31 ngày trong tháng hoặc các giờ -->
+                        </div>
+                    </div>
+
+                    <!-- Thân Lịch Đa Tài Nguyên / Theo Bảng Dịch Vụ -->
+                    <div id="timelineBody">
+                        <!-- Render các bảng dịch vụ và tài nguyên từ app.js -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= MODAL: CHI TIẾT LỊCH ================= -->
+    <div class="modal-backdrop" id="bookingDetailModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-circle-info" style="color: #2563eb;"></i> Thông Tin Lịch Sử Dụng
+                </div>
+                <button class="btn-close" onclick="closeModal('bookingDetailModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="bookingDetailContent"></div>
+            <div class="modal-footer" id="detailModalActions"></div>
+        </div>
+    </div>
+
+    <!-- Container Toast thông báo -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="sheet_data.js"></script>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

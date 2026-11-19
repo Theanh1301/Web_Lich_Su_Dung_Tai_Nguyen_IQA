@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị tài nguyên Viện Quản lý chất lượng và Khảo thí</title>
+
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons 6.5 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-nav-tabs {
+            display: flex;
+            gap: 12px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .admin-tab-btn {
+            padding: 12px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+        .admin-tab-btn:hover {
+            color: var(--primary);
+        }
+        .admin-tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 700;
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+        .admin-table th {
+            background: #f8fafc;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .admin-table td {
+            padding: 12px 16px;
+            font-size: 13.5px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .admin-table tr:hover {
+            background: #fafafa;
+        }
+        .sheet-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+        .sheet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= ADMIN LOGIN CONTAINER ================= -->
+    <div id="adminLoginSection" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 24px;">
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04); width: 100%; max-width: 440px; padding: 36px 32px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #2563eb, #1d4ed8); border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 26px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h1 style="font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">ĐĂNG NHẬP QUẢN TRỊ VIÊN</h1>
+                <p style="font-size: 13px; color: #64748b; font-weight: 500;">Viện Quản lý chất lượng và Khảo thí</p>
+            </div>
+
+            <!-- Thông báo lỗi đăng nhập -->
+            <div id="loginErrorMessage" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin-bottom: 18px; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span id="loginErrorText"></span>
+            </div>
+
+            <!-- Form đăng nhập -->
+            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px;">Tài khoản đăng nhập <span style="color: #ef4444;">*</span></label>
+                    <div style="position: relative;">
+                        <i class="fa-regular fa-user" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                        <input type="text" id="loginEmail" class="form-control" placeholder="Ví dụ: theanhnguyen1301" style="padding-left: 38px; height: 42px; border-radius: 8px;" required autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 22px;">
+                    <label class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px;">Mật khẩu <span style="color: #ef4444;">*</span></label>
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-lock" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px;"></i>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Nhập mật khẩu..." style="padding-left: 38px; padding-right: 40px; height: 42px; border-radius: 8px;" required>
+                        <button type="button" onclick="togglePasswordVisibility('loginPassword', 'eyeIconLogin')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;">
+                            <i id="eyeIconLogin" class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; height: 44px; font-size: 14.5px; font-weight: 700; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Quản Trị
+                </button>
+            </form>
+
+            <div style="margin-top: 24px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 18px;">
+                <a href="index.html" style="font-size: 13px; color: #64748b; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-arrow-left"></i> Quay lại trang xem lịch
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN MAIN PORTAL ================= -->
+    <div id="adminPortal" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-container" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                <div class="brand-section">
+                    <a href="index.html" class="btn btn-secondary" style="padding: 6px 12px;" onclick="DataService.logout()">
+                        <i class="fa-solid fa-arrow-left"></i> Về Xem Lịch
+                    </a>
+                    <div>
+                        <h1 class="brand-title" style="font-size: 16px;">QUẢN TRỊ TÀI NGUYÊN - VIỆN QUẢN LÝ CHẤT LƯỢNG VÀ KHẢO THÍ</h1>
+                    </div>
+                </div>
+                <div class="header-actions" style="display:flex; align-items:center; gap:10px; flex-wrap: wrap;">
+                    <!-- Huy hiệu trạng thái Tự động lưu tức thì -->
+                    <div class="auto-save-pill" id="autoSavePill" title="Mọi thao tác quản trị đều được máy chủ tự động ghi tức thì vào tệp sheet_data.js">
+                        <span class="pulse-dot"></span>
+                        <span>Tự động lưu: <b>sheet_data.js</b></span>
+                    </div>
+
+                    <!-- Thông tin Admin đang đăng nhập -->
+                    <div style="display: flex; align-items: center; gap: 8px; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 12px; border-radius: 20px; font-size: 12.5px;">
+                        <i class="fa-solid fa-circle-user" style="color: #2563eb; font-size: 15px;"></i>
+                        <span id="currentAdminName" style="font-weight: 700; color: #1e293b;">-</span>
+                        <span id="currentAdminRoleBadge" style="background: #2563eb; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px;">ADMIN</span>
+                    </div>
+
+                    <!-- Nút Đổi Mật Khẩu -->
+                    <button class="btn btn-secondary btn-sm" onclick="openChangePasswordModal()" title="Đổi mật khẩu tài khoản quản trị">
+                        <i class="fa-solid fa-key" style="color: #f59e0b;"></i> Đổi Mật Khẩu
+                    </button>
+
+                    <!-- Nút Đồng Bộ Làm Mới Bảng Sheet -->
+                    <button class="btn btn-secondary btn-sm" onclick="safeSyncData()" title="Làm mới lại dữ liệu từ bộ nhớ/sheet mà không làm mất dữ liệu mới">
+                        <i class="fa-solid fa-arrows-rotate" style="color: #2563eb;"></i> Đồng Bộ Sheet
+                    </button>
+
+                    <!-- Nút Đăng Xuất -->
+                    <button class="btn btn-secondary btn-sm" onclick="handleLogout()" title="Đăng xuất khỏi trang quản trị" style="color: #ef4444;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <main class="main-container">
+        <!-- Navigation Tabs -->
+        <div class="admin-nav-tabs">
+            <button class="admin-tab-btn active" id="navTabResources" onclick="switchAdminTab('tabResources')">
+                <i class="fa-solid fa-cubes-stacked"></i> Quản lý tài nguyên
+            </button>
+            <button class="admin-tab-btn" id="navTabCategories" onclick="switchAdminTab('tabCategories')">
+                <i class="fa-solid fa-layer-group"></i> Tài nguyên
+            </button>
+            <button class="admin-tab-btn" id="navTabWhitelist" onclick="switchAdminTab('tabWhitelist')">
+                <i class="fa-solid fa-users-gear"></i> Tài khoản
+            </button>
+            <button class="admin-tab-btn" id="navTabApprovals" onclick="switchAdminTab('tabApprovals')">
+                <i class="fa-solid fa-clock-rotate-left"></i> Phê duyệt <span id="pendingBadge" style="background:#ef4444; color:white; font-size:10px; padding:2px 6px; border-radius:10px;">0</span>
+            </button>
+            <button class="admin-tab-btn" id="navTabSheets" onclick="switchAdminTab('tabSheets')">
+                <i class="fa-solid fa-table" style="color: #059669;"></i> Quản Lý Bảng Sheet & Lưu Trữ
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: QUẢN LÝ TÀI NGUYÊN ================= -->
+        <div id="tabResources" class="admin-tab-pane">
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 16px;">
+                <button class="btn btn-primary" id="btnOpenAddBooking" onclick="openAddBookingModal()">
+                    <i class="fa-solid fa-plus"></i> Thêm Lịch Dùng Mới
+                </button>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mục đích sử dụng</th>
+                        <th>Tài nguyên sử dụng</th>
+                        <th>Người phụ trách</th>
+                        <th>Phòng ban / Đơn vị</th>
+                        <th>Ngày sử dụng</th>
+                        <th>Khung giờ sử dụng</th>
+                        <th>Trạng thái lịch dùng</th>
+                        <th>Ghi chú</th>
+                        <th style="text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingsTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- ================= TAB 2: TÀI NGUYÊN ================= -->
+        <div id="tabCategories" class="admin-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 16px;">
+                <button class="btn btn-primary" id="btnOpenAddCategory" onclick="openAddCategoryModal()">
+                    <i class="fa-solid fa-plus"></i> Thêm Tài Nguyên Mới
+                </button>
+            </div>
+            
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Tài nguyên</th>
+                        <th>Danh mục tài nguyên</th>
+                        <th>Số lượng</th>
+                        <th>Phòng phụ trách</th>
+                        <th>Mô tả</th>
+                        <th style="text-align: right;">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody id="categoriesTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- ================= TAB 3: TÀI KHOẢN ================= -->
+        <div id="tabWhitelist" class="admin-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div>
+                    <h2 style="font-size: 16px; font-weight: 700;">Danh Sách Tài Khoản & Phân Quyền</h2>
+                    <p style="font-size: 12.5px; color: #64748b;">Quản lý tài khoản email và mật khẩu của cán bộ được phép sử dụng hệ thống</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddWhitelistModal()">
+                    <i class="fa-solid fa-user-plus"></i> Thêm Tài Khoản Mới
+                </button>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Địa Chỉ Email (Tên đăng nhập)</th>
+                        <th>Họ Và Tên</th>
+                        <th>Phòng Ban / Đơn Vị</th>
+                        <th>Vai Trò (Role)</th>
+                        <th>Mật Khẩu</th>
+                        <th style="text-align: right;">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody id="whitelistTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- ================= TAB 4: PHÊ DUYỆT ================= -->
+        <div id="tabApprovals" class="admin-tab-pane" style="display: none;">
+            <div style="margin-bottom: 16px;">
+                <h2 style="font-size: 16px; font-weight: 700;">Phê Duyệt Yêu Cầu Đặt Lịch</h2>
+                <p style="font-size: 12.5px; color: #64748b;">Xem và phê duyệt các yêu cầu sử dụng tài nguyên (Phòng máy, Phòng họp, Xe công vụ...)</p>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Nội Dung Yêu Cầu</th>
+                        <th>Tài Nguyên</th>
+                        <th>Thời Gian Đặt</th>
+                        <th>Người Đặt</th>
+                        <th>Chi Tiết Kèm Theo</th>
+                        <th style="text-align: right;">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody id="approvalsTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- ================= TAB 5: QUẢN LÝ BẢNG SHEET & LƯU TRỮ (MỚI) ================= -->
+        <div id="tabSheets" class="admin-tab-pane" style="display: none;">
+            <div style="margin-bottom: 20px;">
+                <h2 style="font-size: 16px; font-weight: 700; color: #059669;">
+                    <i class="fa-solid fa-table"></i> Quản Lý Dữ Liệu Bảng Sheet & Lưu Trữ Vĩnh Viễn
+                </h2>
+                <p style="font-size: 12.5px; color: #64748b;">
+                    Mọi dữ liệu (tài khoản, dịch vụ, tài nguyên, lịch đặt) đều được lưu trữ theo cấu trúc bảng Sheet. Khi làm mới (reset/reload), dữ liệu mới của bạn <b>KHÔNG BAO GIỜ BỊ MẤT</b>.
+                </p>
+            </div>
+
+            <!-- Grid 4 Bảng Sheet -->
+            <div class="sheet-grid">
+                <!-- Sheet 1: Tài khoản -->
+                <div class="sheet-card">
+                    <div>
+                        <div style="font-size:14px; font-weight:700; color:#1e3a8a;">
+                            <i class="fa-solid fa-users" style="color: #2563eb;"></i> Sheet 1: TaiKhoan_Whitelist
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                            Số lượng: <b id="countWhitelist">0</b> tài khoản
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="exportSheetCsv('whitelist')">
+                        <i class="fa-solid fa-file-csv" style="color:#059669;"></i> Tải CSV
+                    </button>
+                </div>
+
+                <!-- Sheet 2: Dịch vụ -->
+                <div class="sheet-card">
+                    <div>
+                        <div style="font-size:14px; font-weight:700; color:#1e3a8a;">
+                            <i class="fa-solid fa-layer-group" style="color: #7c3aed;"></i> Sheet 2: DichVu_Categories
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                            Số lượng: <b id="countCategories">0</b> dịch vụ
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="exportSheetCsv('categories')">
+                        <i class="fa-solid fa-file-csv" style="color:#059669;"></i> Tải CSV
+                    </button>
+                </div>
+
+                <!-- Sheet 3: Tài nguyên -->
+                <div class="sheet-card">
+                    <div>
+                        <div style="font-size:14px; font-weight:700; color:#1e3a8a;">
+                            <i class="fa-solid fa-cubes-stacked" style="color: #059669;"></i> Sheet 3: TaiNguyen_Resources
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                            Số lượng: <b id="countResources">0</b> tài nguyên
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="exportSheetCsv('resources')">
+                        <i class="fa-solid fa-file-csv" style="color:#059669;"></i> Tải CSV
+                    </button>
+                </div>
+
+                <!-- Sheet 4: Lịch đặt -->
+                <div class="sheet-card">
+                    <div>
+                        <div style="font-size:14px; font-weight:700; color:#1e3a8a;">
+                            <i class="fa-regular fa-calendar-check" style="color: #d97706;"></i> Sheet 4: LichDat_Bookings
+                        </div>
+                        <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                            Số lượng: <b id="countBookings">0</b> lượt đặt
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="exportSheetCsv('bookings')">
+                        <i class="fa-solid fa-file-csv" style="color:#059669;"></i> Tải CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tự Động Cập Nhật Tức Thì Vào File Dữ Liệu -->
+            <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:18px; margin-bottom:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <h3 style="font-size:15px; font-weight:700; color:#166534; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-bolt" style="color: #eab308;"></i> Tự Động Cập Nhật Tức Thì Vào File sheet_data.js
+                        </h3>
+                        <p style="font-size:12.5px; color:#15803d; margin-top:4px;" id="fileAccessStatusBadge">
+                            Mỗi khi bạn thêm/sửa tài khoản, dịch vụ, tài nguyên hay lịch đặt, hệ thống sẽ <b>tự động ghi thẳng tức thì vào tệp dữ liệu trên ổ đĩa</b>!
+                        </p>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button id="btnGrantFileAccess" class="btn btn-secondary" onclick="connectFileSystemAccess()" style="border-color:#16a34a; color:#166534;" title="Cấp quyền cho trình duyệt ghi thẳng vào sheet_data.js">
+                            <i class="fa-solid fa-key"></i> Cấp Quyền Ghi Trực Tiếp sheet_data.js
+                        </button>
+                        <button class="btn btn-secondary" onclick="reloadFromSheetDataFile()" title="Nạp lại dữ liệu từ tệp sheet_data.js">
+                            <i class="fa-solid fa-rotate"></i> Nạp Lại Từ File
+                        </button>
+                        <button class="btn btn-primary" style="background:#16a34a; border-color:#15803d;" onclick="DataService.downloadSharedSheetDataJs()">
+                            <i class="fa-solid fa-download"></i> Tải File sheet_data.js
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kết nối Đồng Bộ Google Sheets Trực Tuyến -->
+            <div style="background:#ffffff; border:1px solid #bfdbfe; border-radius:10px; padding:20px; margin-bottom:20px;">
+                <h3 style="font-size:15px; font-weight:700; color:#1e40af; margin-bottom:8px;">
+                    <i class="fa-brands fa-google-drive"></i> Kết Nối Google Sheets Trực Tuyến (Tùy Chọn)
+                </h3>
+                <p style="font-size:12.5px; color:#475569; margin-bottom:14px;">
+                    Nhập đường dẫn Google Apps Script Web App để đồng bộ 2 chiều trực tiếp với file Google Sheets của Viện. Mọi thay đổi sẽ được tự động lưu lên Google Sheets.
+                </p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="url" id="googleSheetUrlInput" class="form-control" style="flex:1; min-width:300px;" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+                    <button class="btn btn-primary" onclick="saveAndSyncGoogleSheet()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Lưu & Đồng Bộ Lên Google Sheet
+                    </button>
+                    <button class="btn btn-secondary" onclick="pullFromGoogleSheet()">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Tải Về Từ Google Sheet
+                    </button>
+                </div>
+                <div style="font-size:11.5px; color:#64748b; margin-top:8px;">
+                    <i class="fa-solid fa-circle-info"></i> Tệp mã nguồn <code>google-sheet-sync.gs</code> đã được tạo sẵn trong thư mục để bạn dán vào Google Sheets.
+                </div>
+            </div>
+
+            <!-- Sao Lưu & Khôi Phục Toàn Bộ Hệ Thống -->
+            <div style="background:#ffffff; border:1px solid var(--border); border-radius:10px; padding:20px;">
+                <h3 style="font-size:15px; font-weight:700; color:#0f172a; margin-bottom:8px;">
+                    <i class="fa-solid fa-shield-halved"></i> Sao Lưu & Bảo Vệ Toàn Bộ Dữ Liệu
+                </h3>
+                <p style="font-size:12.5px; color:#64748b; margin-bottom:14px;">
+                    Bạn có thể tải toàn bộ dữ liệu (tài khoản, dịch vụ, tài nguyên, lịch đặt) về máy tính thành một tệp sao lưu an toàn hoặc khôi phục/gộp lại bất cứ khi nào.
+                </p>
+                <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                    <button class="btn btn-secondary" onclick="DataService.exportFullBackupJson()">
+                        <i class="fa-solid fa-download"></i> Tải Tệp Sao Lưu Hệ Thống (.json)
+                    </button>
+
+                    <label class="btn btn-secondary" style="cursor:pointer; margin-bottom:0;">
+                        <i class="fa-solid fa-upload"></i> Khôi Phục / Gộp Từ Tệp Sao Lưu
+                        <input type="file" id="backupFileInput" accept=".json" style="display:none;" onchange="handleRestoreBackupFile(event)">
+                    </label>
+
+                    <button class="btn btn-secondary" style="color:#059669;" onclick="mergeDefaultDataSafe()" title="Bổ sung thêm các danh mục hoặc tài nguyên mẫu nếu bị thiếu mà không xóa dữ liệu mới">
+                        <i class="fa-solid fa-plus-minus"></i> Bổ Sung Dữ Liệu Mẫu Thiếu (Không Mất Dữ Liệu Mới)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= MODAL: THÊM LỊCH DÙNG MỚI ================= -->
+    <div class="modal-backdrop" id="addBookingModal">
+        <div class="modal-card" style="max-width: 580px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-calendar-plus" style="color: #2563eb;"></i> Thêm Lịch Dùng Mới</div>
+                <button class="btn-close" onclick="closeModal('addBookingModal')">&times;</button>
+            </div>
+            <form id="addBookingForm" onsubmit="handleAddBooking(event)">
+                <div class="modal-body">
+                    <!-- Cảnh báo trùng lịch trực tiếp -->
+                    <div id="addBookingOverlapWarning" style="display: none; background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 10px 14px; color: #c2410c; font-size: 13px; font-weight: 600; margin-bottom: 14px; align-items: flex-start; gap: 8px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px;"></i>
+                        <div id="addBookingOverlapText"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tài Nguyên Sử Dụng <span class="required">*</span></label>
+                        <select id="bookingResourceSelect" class="form-control" required onchange="checkAddBookingOverlapLive()"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tiêu Đề / Mục Đích Sử Dụng <span class="required">*</span></label>
+                        <input type="text" id="bookingTitle" class="form-control" placeholder="Ví dụ: Thi kết thúc học phần / Họp giao ban / Đưa đón chuyên gia..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ngày Sử Dụng <span class="required">*</span></label>
+                        <input type="date" id="bookingDate" class="form-control" required onchange="checkAddBookingOverlapLive()">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Giờ Bắt Đầu <span class="required">*</span></label>
+                            <input type="time" id="bookingStartTime" class="form-control" required onchange="checkAddBookingOverlapLive()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Giờ Kết Thúc <span class="required">*</span></label>
+                            <input type="time" id="bookingEndTime" class="form-control" required onchange="checkAddBookingOverlapLive()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Người Sử Dụng / Phụ Trách <span class="required">*</span></label>
+                            <input type="text" id="bookingUserName" class="form-control" placeholder="Họ và tên..." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Đơn Vị / Phòng Ban</label>
+                            <input type="text" id="bookingUserDept" class="form-control" placeholder="Phòng CNTT, Khảo thí...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Trạng Thái Lịch Dùng</label>
+                        <select id="bookingStatus" class="form-control">
+                            <option value="APPROVED" selected>Đã Duyệt (Hiển thị ngay trên lịch công khai)</option>
+                            <option value="PENDING">Chờ Duyệt (Chuyển vào Hàng đợi phê duyệt)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" style="margin-bottom: 0;">Ghi Chú Chi Tiết (Tùy chọn)</label>
+                            <span id="addBookingNotesCount" style="font-size: 11.5px; color: #64748b;">0/1000 ký tự</span>
+                        </div>
+                        <textarea id="bookingNotes" class="form-control" rows="3" maxlength="1000" placeholder="Ví dụ: Số lượng người tham gia, lộ trình di chuyển, thiết bị mang theo... (Tối đa 1000 ký tự)" oninput="updateNotesCharCount(this, 'addBookingNotesCount')"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addBookingModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Lưu Lịch Dùng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: SỬA LỊCH DÙNG ================= -->
+    <div class="modal-backdrop" id="editBookingModal">
+        <div class="modal-card" style="max-width: 580px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-pen-to-square" style="color: #2563eb;"></i> Sửa Lịch Đăng Ký Sử Dụng</div>
+                <button class="btn-close" onclick="closeModal('editBookingModal')">&times;</button>
+            </div>
+            <form id="editBookingForm" onsubmit="handleEditBooking(event)">
+                <input type="hidden" id="editBookingId">
+                <div class="modal-body">
+                    <!-- Cảnh báo trùng lịch trực tiếp khi sửa -->
+                    <div id="editBookingOverlapWarning" style="display: none; background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 10px 14px; color: #c2410c; font-size: 13px; font-weight: 600; margin-bottom: 14px; align-items: flex-start; gap: 8px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px;"></i>
+                        <div id="editBookingOverlapText"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tài Nguyên Sử Dụng <span class="required">*</span></label>
+                        <select id="editBookingResourceSelect" class="form-control" required onchange="checkEditBookingOverlapLive()"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tiêu Đề / Mục Đích Sử Dụng <span class="required">*</span></label>
+                        <input type="text" id="editBookingTitle" class="form-control" placeholder="Ví dụ: Thi kết thúc học phần / Họp giao ban / Đưa đón chuyên gia..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ngày Sử Dụng <span class="required">*</span></label>
+                        <input type="date" id="editBookingDate" class="form-control" required onchange="checkEditBookingOverlapLive()">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Giờ Bắt Đầu <span class="required">*</span></label>
+                            <input type="time" id="editBookingStartTime" class="form-control" required onchange="checkEditBookingOverlapLive()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Giờ Kết Thúc <span class="required">*</span></label>
+                            <input type="time" id="editBookingEndTime" class="form-control" required onchange="checkEditBookingOverlapLive()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Người Sử Dụng / Phụ Trách <span class="required">*</span></label>
+                            <input type="text" id="editBookingUserName" class="form-control" placeholder="Họ và tên..." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Đơn Vị / Phòng Ban</label>
+                            <input type="text" id="editBookingUserDept" class="form-control" placeholder="Phòng CNTT, Khảo thí...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Trạng Thái Lịch Dùng</label>
+                        <select id="editBookingStatus" class="form-control">
+                            <option value="APPROVED">Đã Duyệt (Hiển thị ngay trên lịch công khai)</option>
+                            <option value="PENDING">Chờ Duyệt (Chuyển vào Hàng đợi phê duyệt)</option>
+                            <option value="REJECTED">Từ Chối</option>
+                            <option value="CANCELLED">Đã Hủy</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" style="margin-bottom: 0;">Ghi Chú Chi Tiết (Tùy chọn)</label>
+                            <span id="editBookingNotesCount" style="font-size: 11.5px; color: #64748b;">0/1000 ký tự</span>
+                        </div>
+                        <textarea id="editBookingNotes" class="form-control" rows="3" maxlength="1000" placeholder="Ví dụ: Số lượng người tham gia, thiết bị mang theo... (Tối đa 1000 ký tự)" oninput="updateNotesCharCount(this, 'editBookingNotesCount')"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editBookingModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Cập Nhật Lịch Dùng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: THÊM TÀI NGUYÊN MỚI ================= -->
+    <div class="modal-backdrop" id="addResourceModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-plus"></i> Thêm Tài Nguyên Mới</div>
+                <button class="btn-close" onclick="closeModal('addResourceModal')">&times;</button>
+            </div>
+            <form id="addResourceForm" onsubmit="handleAddResource(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Thuộc Nhóm Dịch Vụ <span class="required">*</span></label>
+                        <select id="newResCategory" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tên Tài Nguyên <span class="required">*</span></label>
+                        <input type="text" id="newResName" class="form-control" placeholder="VD: Phòng máy Chi nhánh 3 / Xe Fortuner 7 chỗ..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Địa Điểm / Cơ Sở <span class="required">*</span></label>
+                        <input type="text" id="newResLocation" class="form-control" placeholder="VD: Cơ sở 3 - Cầu Giấy / Tầng 2 Tòa B..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sức Chứa / Đặc Điểm</label>
+                        <input type="text" id="newResCapacity" class="form-control" placeholder="VD: 40 máy tính, 16 chỗ ngồi, xe 7 chỗ...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Google Calendar ID (Tùy chọn)</label>
+                        <input type="text" id="newResCalendarId" class="form-control" placeholder="VD: phongmay3@company.org">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addResourceModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu Vào Bảng Sheet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: CHỈNH SỬA TÀI NGUYÊN (TAB QUẢN LÝ TÀI NGUYÊN) ================= -->
+    <div class="modal-backdrop" id="editResourceModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-pen-to-square" style="color: #2563eb;"></i> Chỉnh Sửa Tài Nguyên</div>
+                <button class="btn-close" onclick="closeModal('editResourceModal')">&times;</button>
+            </div>
+            <form id="editResourceForm" onsubmit="handleEditResource(event)">
+                <input type="hidden" id="editResId">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Thuộc Nhóm Dịch Vụ <span class="required">*</span></label>
+                        <select id="editResCategory" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tên Tài Nguyên <span class="required">*</span></label>
+                        <input type="text" id="editResName" class="form-control" placeholder="VD: Phòng máy Chi nhánh 3 / Xe Fortuner 7 chỗ..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Địa Điểm / Cơ Sở <span class="required">*</span></label>
+                        <input type="text" id="editResLocation" class="form-control" placeholder="VD: Cơ sở 3 - Cầu Giấy / Tầng 2 Tòa B..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sức Chứa / Đặc Điểm</label>
+                        <input type="text" id="editResCapacity" class="form-control" placeholder="VD: 40 máy tính, 16 chỗ ngồi, xe 7 chỗ...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Google Calendar ID (Tùy chọn)</label>
+                        <input type="text" id="editResCalendarId" class="form-control" placeholder="VD: phongmay3@company.org">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editResourceModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Cập Nhật Tài Nguyên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: THÊM TÀI NGUYÊN MỚI ================= -->
+    <div class="modal-backdrop" id="addCategoryModal">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-layer-group" style="color: #2563eb;"></i> Thêm Tài Nguyên Mới</div>
+                <button class="btn-close" onclick="closeModal('addCategoryModal')">&times;</button>
+            </div>
+            <form id="addCategoryForm" onsubmit="handleAddCategory(event)">
+                <div class="modal-body">
+                    <!-- 1. Tên tài nguyên -->
+                    <div class="form-group">
+                        <label class="form-label">Tài nguyên <span class="required">*</span></label>
+                        <input type="text" id="newCatName" class="form-control" placeholder="Ví dụ: Phòng máy, Phòng họp, Xe công vụ..." required>
+                    </div>
+
+                    <!-- 2. Danh mục tài nguyên -->
+                    <div class="form-group">
+                        <label class="form-label">Danh mục tài nguyên <span class="required">*</span></label>
+                        <input type="text" id="newCatCatalogType" list="catalogSuggestions" class="form-control" placeholder="Ví dụ: Cơ sở vật chất / Phòng chức năng / Phương tiện di chuyển..." required>
+                        <datalist id="catalogSuggestions">
+                            <option value="Cơ sở vật chất">
+                            <option value="Phòng chức năng">
+                            <option value="Phương tiện di chuyển">
+                            <option value="Thiết bị CNTT & Khảo thí">
+                            <option value="Hội trường & Sự kiện">
+                            <option value="Phòng nghỉ / Lưu trú">
+                        </datalist>
+                    </div>
+
+                    <!-- 3. Số lượng & 4. Phòng phụ trách -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Số lượng <span class="required">*</span></label>
+                            <input type="text" id="newCatQuantity" class="form-control" placeholder="Ví dụ: 4 phòng, 1 phòng, 2 xe..." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phòng phụ trách <span class="required">*</span></label>
+                            <input type="text" id="newCatDept" class="form-control" placeholder="Ví dụ: Phòng CNTT, Phòng Hành chính..." required>
+                        </div>
+                    </div>
+
+                    <!-- 5. Mô tả (Giới hạn 1000 ký tự) -->
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" style="margin-bottom: 0;">Mô tả</label>
+                            <span id="descCharCount" style="font-size: 11.5px; color: #64748b;">0/1000 ký tự</span>
+                        </div>
+                        <textarea id="newCatDesc" class="form-control" rows="3" maxlength="1000" placeholder="Nhập thông tin mô tả chi tiết (tối đa 1000 ký tự)..." oninput="updateDescCharCount(this)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addCategoryModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Lưu Tài Nguyên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: CHỈNH SỬA TÀI NGUYÊN (TAB TÀI NGUYÊN) ================= -->
+    <div class="modal-backdrop" id="editCategoryModal">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-pen-to-square" style="color: #2563eb;"></i> Chỉnh Sửa Thông Tin Tài Nguyên</div>
+                <button class="btn-close" onclick="closeModal('editCategoryModal')">&times;</button>
+            </div>
+            <form id="editCategoryForm" onsubmit="handleEditCategory(event)">
+                <input type="hidden" id="editCatId">
+                <div class="modal-body">
+                    <!-- 1. Tên tài nguyên -->
+                    <div class="form-group">
+                        <label class="form-label">Tài nguyên <span class="required">*</span></label>
+                        <input type="text" id="editCatName" class="form-control" placeholder="Ví dụ: Phòng máy, Phòng họp, Xe công vụ..." required>
+                    </div>
+
+                    <!-- 2. Danh mục tài nguyên -->
+                    <div class="form-group">
+                        <label class="form-label">Danh mục tài nguyên <span class="required">*</span></label>
+                        <input type="text" id="editCatCatalogType" list="catalogSuggestions" class="form-control" placeholder="Ví dụ: Cơ sở vật chất / Phòng chức năng / Phương tiện di chuyển..." required>
+                    </div>
+
+                    <!-- 3. Số lượng & 4. Phòng phụ trách -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Số lượng <span class="required">*</span></label>
+                            <input type="text" id="editCatQuantity" class="form-control" placeholder="Ví dụ: 4 phòng, 1 phòng, 2 xe..." required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phòng phụ trách <span class="required">*</span></label>
+                            <input type="text" id="editCatDept" class="form-control" placeholder="Ví dụ: Phòng CNTT, Phòng Hành chính..." required>
+                        </div>
+                    </div>
+
+                    <!-- 5. Mô tả (Giới hạn 1000 ký tự) -->
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" style="margin-bottom: 0;">Mô tả</label>
+                            <span id="editDescCharCount" style="font-size: 11.5px; color: #64748b;">0/1000 ký tự</span>
+                        </div>
+                        <textarea id="editCatDesc" class="form-control" rows="3" maxlength="1000" placeholder="Nhập thông tin mô tả chi tiết (tối đa 1000 ký tự)..." oninput="updateEditDescCharCount(this)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editCategoryModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Cập Nhật Tài Nguyên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: THÊM EMAIL WHITELIST ================= -->
+    <div class="modal-backdrop" id="addWhitelistModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-user-plus"></i> Thêm Email Vào Whitelist</div>
+                <button class="btn-close" onclick="closeModal('addWhitelistModal')">&times;</button>
+            </div>
+            <form id="addWhitelistForm" onsubmit="handleAddWhitelist(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Địa Chỉ Email <span class="required">*</span></label>
+                        <input type="email" id="newWhEmail" class="form-control" placeholder="nhanvien@company.vn" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Họ Và Tên <span class="required">*</span></label>
+                        <input type="text" id="newWhName" class="form-control" placeholder="Nguyễn Văn X" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phòng Ban / Bộ Phận</label>
+                        <input type="text" id="newWhDept" class="form-control" placeholder="Trung tâm Khảo thí / Phòng IT...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Vai Trò (Phân Quyền) <span class="required">*</span></label>
+                        <select id="newWhRole" class="form-control" required>
+                            <option value="VIEWER">VIEWER (Người xem - Chỉ được xem lịch)</option>
+                            <option value="EDITOR" selected>EDITOR (Người sửa - Đặt và sửa lịch của mình)</option>
+                            <option value="ADMIN">ADMIN (Quản trị viên - Toàn quyền hệ thống)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật Khẩu Đăng Nhập</label>
+                        <input type="text" id="newWhPassword" class="form-control" value="123456" placeholder="Mặc định: 123456">
+                        <span style="font-size: 11.5px; color: #64748b;">Mặc định là <b>123456</b>, cán bộ có thể đổi sau khi đăng nhập.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addWhitelistModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu Vào Bảng Sheet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ĐỔI MẬT KHẨU CÁ NHÂN ================= -->
+    <div class="modal-backdrop" id="changePasswordModal">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-key" style="color: #f59e0b;"></i> Đổi Mật Khẩu Tài Khoản</div>
+                <button class="btn-close" onclick="closeModal('changePasswordModal')">&times;</button>
+            </div>
+            <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Tài Khoản Đang Đăng Nhập</label>
+                        <input type="text" id="cpEmail" class="form-control" readonly style="background: #f1f5f9; color: #64748b; font-weight: 600;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật Khẩu Hiện Tại <span class="required">*</span></label>
+                        <div style="position: relative;">
+                            <input type="password" id="cpCurrentPass" class="form-control" placeholder="Nhập mật khẩu hiện tại (mặc định: 123456)" required>
+                            <button type="button" onclick="togglePasswordVisibility('cpCurrentPass', 'cpEye1')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                                <i id="cpEye1" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật Khẩu Mới <span class="required">*</span></label>
+                        <div style="position: relative;">
+                            <input type="password" id="cpNewPass" class="form-control" placeholder="Tối thiểu 4 ký tự" minlength="4" required>
+                            <button type="button" onclick="togglePasswordVisibility('cpNewPass', 'cpEye2')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                                <i id="cpEye2" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Xác Nhận Mật Khẩu Mới <span class="required">*</span></label>
+                        <div style="position: relative;">
+                            <input type="password" id="cpConfirmPass" class="form-control" placeholder="Nhập lại mật khẩu mới" minlength="4" required>
+                            <button type="button" onclick="togglePasswordVisibility('cpConfirmPass', 'cpEye3')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                                <i id="cpEye3" class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('changePasswordModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Lưu Mật Khẩu Mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ADMIN ĐỔI MẬT KHẨU CHO CÁN BỘ ================= -->
+    <div class="modal-backdrop" id="adminResetUserPassModal">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-user-lock" style="color: #2563eb;"></i> Đặt Lại Mật Khẩu Cho Cán Bộ</div>
+                <button class="btn-close" onclick="closeModal('adminResetUserPassModal')">&times;</button>
+            </div>
+            <form id="adminResetUserPassForm" onsubmit="handleAdminResetUserPass(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Email Cán Bộ</label>
+                        <input type="text" id="arUserEmail" class="form-control" readonly style="background: #f1f5f9; color: #64748b; font-weight: 600;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật Khẩu Mới <span class="required">*</span></label>
+                        <input type="text" id="arUserNewPass" class="form-control" value="123456" placeholder="Mặc định: 123456" required>
+                        <span style="font-size: 11.5px; color: #64748b;">Bạn có thể nhập mật khẩu mới tùy ý hoặc giữ nguyên 123456 để đặt lại về mặc định.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('adminResetUserPassModal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Cập Nhật Mật Khẩu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    </div> <!-- Đóng #adminPortal -->
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="sheet_data.js"></script>
+    <script src="data.js"></script>
+    <script>
+        let categories = [];
+        let resources = [];
+        let whitelist = [];
+        let bookings = [];
+        let currentAdminUser = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAutoSaveEnvironment();
+            checkAdminAuth();
+
+            // Tự động làm mới khi máy khác trong cơ quan cập nhật
+            window.onExternalDataUpdate = () => {
+                if (currentAdminUser) {
+                    loadAdminData();
+                    DataService.showSaveNotification('Dữ liệu đã tự động đồng bộ thời gian thực!');
+                }
+            };
+        });
+
+        function checkAdminAuth() {
+            const authUser = DataService.getAuthUser();
+            if (authUser && (authUser.role === 'ADMIN' || authUser.role === 'EDITOR' || authUser.role === 'VIEWER')) {
+                currentAdminUser = authUser;
+                document.getElementById('adminLoginSection').style.display = 'none';
+                document.getElementById('adminPortal').style.display = 'block';
+                document.getElementById('currentAdminName').textContent = authUser.fullName || authUser.email;
+
+                const badge = document.getElementById('currentAdminRoleBadge');
+                if (badge) {
+                    badge.textContent = authUser.role;
+                    if (authUser.role === 'ADMIN') {
+                        badge.style.background = '#2563eb';
+                    } else if (authUser.role === 'EDITOR') {
+                        badge.style.background = '#059669';
+                    } else {
+                        badge.style.background = '#64748b';
+                    }
+                }
+
+                applyRolePermissions(authUser);
+                loadAdminData();
+                const savedUrl = DataService.getGoogleSheetUrl();
+                if (savedUrl) {
+                    const sheetInput = document.getElementById('googleSheetUrlInput');
+                    if (sheetInput) sheetInput.value = savedUrl;
+                }
+            } else {
+                currentAdminUser = null;
+                document.getElementById('adminLoginSection').style.display = 'flex';
+                document.getElementById('adminPortal').style.display = 'none';
+                document.getElementById('loginErrorMessage').style.display = 'none';
+                setTimeout(() => {
+                    const emailInput = document.getElementById('loginEmail');
+                    if (emailInput) emailInput.focus();
+                }, 100);
+            }
+        }
+
+        function applyRolePermissions(user) {
+            const role = (user.role || '').toUpperCase();
+            const navTabWhitelist = document.getElementById('navTabWhitelist');
+            const navTabSheets = document.getElementById('navTabSheets');
+            const btnAddBooking = document.getElementById('btnOpenAddBooking');
+            const btnAddResource = document.getElementById('btnOpenAddResource');
+            const btnAddCategory = document.getElementById('btnOpenAddCategory');
+
+            if (role === 'ADMIN') {
+                if (navTabWhitelist) navTabWhitelist.style.display = 'inline-flex';
+                if (navTabSheets) navTabSheets.style.display = 'inline-flex';
+                if (btnAddBooking) btnAddBooking.style.display = 'inline-flex';
+                if (btnAddResource) btnAddResource.style.display = 'inline-flex';
+                if (btnAddCategory) btnAddCategory.style.display = 'inline-flex';
+            } else if (role === 'EDITOR') {
+                // Chỉ xem và sửa được ở 3 mục: Quản lý tài nguyên, Tài nguyên, Phê duyệt
+                if (navTabWhitelist) navTabWhitelist.style.display = 'none';
+                if (navTabSheets) navTabSheets.style.display = 'none';
+                if (btnAddBooking) btnAddBooking.style.display = 'inline-flex';
+                if (btnAddResource) btnAddResource.style.display = 'inline-flex';
+                if (btnAddCategory) btnAddCategory.style.display = 'inline-flex';
+
+                const activePane = document.querySelector('.admin-tab-pane[style*="display: block"]');
+                if (activePane && (activePane.id === 'tabWhitelist' || activePane.id === 'tabSheets')) {
+                    switchAdminTab('tabResources');
+                }
+            } else if (role === 'VIEWER') {
+                // Chỉ có chức năng xem ở 3 mục: Quản lý tài nguyên, Tài nguyên, Phê duyệt
+                // Không có chức năng thêm, sửa, xóa
+                if (navTabWhitelist) navTabWhitelist.style.display = 'none';
+                if (navTabSheets) navTabSheets.style.display = 'none';
+                if (btnAddBooking) btnAddBooking.style.display = 'none';
+                if (btnAddResource) btnAddResource.style.display = 'none';
+                if (btnAddCategory) btnAddCategory.style.display = 'none';
+
+                const activePane = document.querySelector('.admin-tab-pane[style*="display: block"]');
+                if (activePane && (activePane.id === 'tabWhitelist' || activePane.id === 'tabSheets')) {
+                    switchAdminTab('tabResources');
+                }
+            }
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errBox = document.getElementById('loginErrorMessage');
+            const errText = document.getElementById('loginErrorText');
+
+            const res = DataService.login(identifier, password);
+            if (!res.success) {
+                errBox.style.display = 'flex';
+                errText.textContent = res.message;
+                return;
+            }
+
+            const role = (res.user.role || '').toUpperCase();
+            if (role !== 'ADMIN' && role !== 'EDITOR' && role !== 'VIEWER') {
+                DataService.logout();
+                errBox.style.display = 'flex';
+                errText.textContent = `Tài khoản ${res.user.email} không có vai trò hợp lệ để truy cập hệ thống!`;
+                return;
+            }
+
+            errBox.style.display = 'none';
+            document.getElementById('loginPassword').value = '';
+            showToast(`Đăng nhập thành công! Chào mừng ${res.user.fullName} (${role}).`, 'success');
+            checkAdminAuth();
+        }
+
+        function handleLogout() {
+            if (confirm('Bạn có chắc chắn muốn đăng xuất khỏi trang Quản trị?')) {
+                DataService.logout();
+                currentAdminUser = null;
+                checkAdminAuth();
+                showToast('Đã đăng xuất thành công!', 'info');
+            }
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function openChangePasswordModal() {
+            if (!currentAdminUser) return;
+            document.getElementById('cpEmail').value = currentAdminUser.email;
+            document.getElementById('cpCurrentPass').value = '';
+            document.getElementById('cpNewPass').value = '';
+            document.getElementById('cpConfirmPass').value = '';
+            document.getElementById('changePasswordModal').classList.add('active');
+        }
+
+        function handleChangePassword(e) {
+            e.preventDefault();
+            if (!currentAdminUser) return;
+            const currentPass = document.getElementById('cpCurrentPass').value.trim();
+            const newPass = document.getElementById('cpNewPass').value.trim();
+            const confirmPass = document.getElementById('cpConfirmPass').value.trim();
+
+            if (newPass !== confirmPass) {
+                showToast('Xác nhận mật khẩu mới không khớp!', 'error');
+                return;
+            }
+
+            const res = DataService.changePassword(currentAdminUser.email, currentPass, newPass);
+            if (res.success) {
+                closeModal('changePasswordModal');
+                showToast(res.message, 'success');
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        function openAdminResetUserPassModal(email) {
+            if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền đặt lại mật khẩu của người khác!', 'error');
+                return;
+            }
+            document.getElementById('arUserEmail').value = email;
+            document.getElementById('arUserNewPass').value = '123456';
+            document.getElementById('adminResetUserPassModal').classList.add('active');
+        }
+
+        function handleAdminResetUserPass(e) {
+            e.preventDefault();
+            if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền đặt lại mật khẩu của người khác!', 'error');
+                return;
+            }
+            const email = document.getElementById('arUserEmail').value.trim();
+            const newPass = document.getElementById('arUserNewPass').value.trim();
+
+            const res = DataService.adminSetPassword(email, newPass);
+            if (res.success) {
+                closeModal('adminResetUserPassModal');
+                loadAdminData();
+                showToast(res.message, 'success');
+            } else {
+                showToast(res.message, 'error');
+            }
+        }
+
+        function checkAutoSaveEnvironment() {
+            const badge = document.getElementById('fileAccessStatusBadge');
+            const btnGrant = document.getElementById('btnGrantFileAccess');
+
+            if (window.location.protocol.startsWith('http')) {
+                // Đang chạy qua Local Server start_server.bat
+                badge.innerHTML = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đang chạy qua Máy chủ nội bộ: Mọi thay đổi được TỰ ĐỘNG GHI TỨC THÌ vào sheet_data.js!</span>';
+                if (btnGrant) btnGrant.style.display = 'none';
+            } else if (window.localFileHandle) {
+                badge.innerHTML = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đã cấp quyền File System: Mọi thay đổi được TỰ ĐỘNG GHI TỨC THÌ vào sheet_data.js!</span>';
+                if (btnGrant) btnGrant.style.display = 'none';
+            } else {
+                badge.innerHTML = 'Đang mở file trực tiếp. Khuyên dùng: Nhấp đúp file <b>start_server.bat</b> trong thư mục để tự động lưu tức thì, hoặc bấm nút cấp quyền bên phải.';
+            }
+        }
+
+        async function connectFileSystemAccess() {
+            try {
+                if (!window.showOpenFilePicker) {
+                    alert('Trình duyệt hiện tại không hỗ trợ API chọn file. Bạn hãy nhấp đúp file start_server.bat trong thư mục để tự động lưu tức thì nhé!');
+                    return;
+                }
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'Tệp JavaScript Data',
+                        accept: { 'text/javascript': ['.js'] }
+                    }],
+                    multiple: false
+                });
+                window.localFileHandle = handle;
+                checkAutoSaveEnvironment();
+                showToast('Đã cấp quyền thành công! Mọi thay đổi từ giờ sẽ tự động ghi thẳng vào file.', 'success');
+                // Ghi thử đồng bộ ngay
+                DataService.syncToFileInstantly();
+            } catch (err) {
+                console.log('User cancelled picker');
+            }
+        }
+
+        function loadAdminData() {
+            categories = DataService.getCategories();
+            resources = DataService.getResources();
+            whitelist = DataService.getWhitelist();
+            bookings = DataService.getBookings();
+
+            renderBookingsTable();
+            renderCategoriesTable();
+            renderWhitelistTable();
+            renderApprovalsTable();
+            updateSheetCounts();
+        }
+
+        function updateSheetCounts() {
+            document.getElementById('countWhitelist').textContent = whitelist.length;
+            document.getElementById('countCategories').textContent = categories.length;
+            document.getElementById('countResources').textContent = DataService.getEffectiveResources().length;
+            document.getElementById('countBookings').textContent = bookings.length;
+        }
+
+        function switchAdminTab(tabId) {
+            if (currentAdminUser && (currentAdminUser.role === 'EDITOR' || currentAdminUser.role === 'VIEWER')) {
+                if (tabId === 'tabWhitelist' || tabId === 'tabSheets') {
+                    showToast('Bạn không có quyền truy cập mục này!', 'error');
+                    return;
+                }
+            }
+            document.querySelectorAll('.admin-tab-pane').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.remove('active'));
+
+            const targetPane = document.getElementById(tabId);
+            if (targetPane) targetPane.style.display = 'block';
+
+            const tabBtnMap = {
+                'tabResources': 'navTabResources',
+                'tabCategories': 'navTabCategories',
+                'tabWhitelist': 'navTabWhitelist',
+                'tabApprovals': 'navTabApprovals',
+                'tabSheets': 'navTabSheets'
+            };
+            const btnId = tabBtnMap[tabId];
+            if (btnId && document.getElementById(btnId)) {
+                document.getElementById(btnId).classList.add('active');
+            } else if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        // LÀM MỚI AN TOÀN: Nạp lại từ bảng Sheet / Storage, KHÔNG BAO GIỜ MẤT DỮ LIỆU MỚI
+        function safeSyncData() {
+            loadAdminData();
+            showToast('Đã đồng bộ và làm mới dữ liệu từ bảng Sheet thành công! Toàn bộ dữ liệu mới đều an toàn.', 'success');
+        }
+
+        function reloadFromSheetDataFile() {
+            if (DataService.forceReloadFromSheetFile()) {
+                loadAdminData();
+                showToast('Đã nạp thành công dữ liệu từ file sheet_data.js!', 'success');
+            } else {
+                showToast('Không tìm thấy dữ liệu trong file sheet_data.js!', 'error');
+            }
+        }
+
+        function exportSheetCsv(sheetKey) {
+            DataService.exportSheetToCsv(sheetKey);
+            showToast(`Đã xuất bảng ${sheetKey} ra tệp CSV!`, 'success');
+        }
+
+        async function saveAndSyncGoogleSheet() {
+            const url = document.getElementById('googleSheetUrlInput').value.trim();
+            if (!url) {
+                showToast('Vui lòng nhập đường dẫn Google Apps Script Web App!', 'error');
+                return;
+            }
+            DataService.setGoogleSheetUrl(url);
+            showToast('Đang đẩy dữ liệu lên Google Sheet...', 'info');
+            await DataService.pushToGoogleSheetAsync(url);
+            showToast('Đã lưu và gửi dữ liệu lên Google Sheet!', 'success');
+        }
+
+        async function pullFromGoogleSheet() {
+            const url = document.getElementById('googleSheetUrlInput').value.trim();
+            if (!url) {
+                showToast('Vui lòng nhập đường dẫn Google Apps Script Web App!', 'error');
+                return;
+            }
+            showToast('Đang tải dữ liệu từ Google Sheet...', 'info');
+            const res = await DataService.fetchFromGoogleSheet(url);
+            if (res.success) {
+                loadAdminData();
+                showToast('Đã cập nhật dữ liệu mới nhất từ Google Sheet thành công!', 'success');
+            } else {
+                showToast('Lỗi khi tải từ Google Sheet: ' + res.error, 'error');
+            }
+        }
+
+        function handleRestoreBackupFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const res = DataService.importFullBackupJson(event.target.result, true);
+                if (res.success) {
+                    loadAdminData();
+                    showToast('Đã khôi phục và gộp dữ liệu thành công! Dữ liệu mới không bị mất.', 'success');
+                } else {
+                    showToast('Lỗi: ' + res.error, 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        function mergeDefaultDataSafe() {
+            DataService.mergeMissingDefaults();
+            loadAdminData();
+            showToast('Đã bổ sung các dữ liệu mẫu còn thiếu! Mọi tài khoản và dịch vụ bạn đã tạo đều được giữ nguyên.', 'success');
+        }
+
+        // =========================================================================
+        // TAB 1: QUẢN LÝ TÀI NGUYÊN (DANH SÁCH LỊCH ĐĂNG KÝ SỬ DỤNG TÀI NGUYÊN)
+        // =========================================================================
+        function renderBookingsTable() {
+            const tbody = document.getElementById('bookingsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const isViewer = currentAdminUser && currentAdminUser.role === 'VIEWER';
+
+            if (bookings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 36px; color:#94a3b8;"><i class="fa-regular fa-calendar-xmark" style="font-size: 28px; margin-bottom: 10px; display:block; color:#cbd5e1;"></i>Chưa có lịch đăng ký sử dụng tài nguyên nào. Hãy bấm <b>"+ Thêm Lịch Dùng Mới"</b> để sắp lịch.</td></tr>`;
+                return;
+            }
+
+            // Sắp xếp lịch dùng: Ngày mới nhất lên trước, sau đó theo giờ bắt đầu
+            const sortedBookings = [...bookings].sort((a, b) => {
+                if (a.date !== b.date) return (b.date || '').localeCompare(a.date || '');
+                return (a.startTime || '').localeCompare(b.startTime || '');
+            });
+
+            sortedBookings.forEach(b => {
+                const res = resources.find(r => r.id === b.resourceId);
+                const cat = categories.find(c => c.id === b.resourceId || (res && res.categoryId === c.id));
+                let resName = res ? res.name : (cat ? cat.name : '');
+                if (!resName) {
+                    if (b.resourceId && b.resourceId.includes('lab')) resName = 'Phòng Thi Xuân Thủy';
+                    else if (b.resourceId && b.resourceId.includes('meet')) resName = 'Phòng Họp';
+                    else if (b.resourceId && b.resourceId.includes('car')) resName = 'Xe Công Vụ';
+                    else resName = b.resourceId || '-';
+                }
+
+                // Tách Người phụ trách & Phòng ban/Đơn vị
+                let personName = b.userName || '-';
+                let deptName = b.userDept || '';
+                if (!deptName && personName.includes('(') && personName.includes(')')) {
+                    const match = personName.match(/^(.*?)\s*\((.*?)\)$/);
+                    if (match) {
+                        personName = match[1].trim();
+                        deptName = match[2].trim();
+                    }
+                }
+                if (!deptName && b.userId) {
+                    const userInWh = whitelist.find(w => w.email.toLowerCase() === b.userId.toLowerCase());
+                    if (userInWh && userInWh.department) deptName = userInWh.department;
+                }
+                if (!deptName) deptName = 'Phòng CNTT & Khảo thí';
+
+                // Format ngày sử dụng: DD/MM/YYYY
+                let dateDisplay = b.date || '-';
+                if (b.date && b.date.includes('-')) {
+                    const parts = b.date.split('-');
+                    if (parts.length === 3) dateDisplay = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+
+                // Khung giờ sử dụng
+                const timeDisplay = (b.startTime && b.endTime) ? `${b.startTime} - ${b.endTime}` : '-';
+
+                // Trạng thái lịch dùng
+                let statusBadge = '';
+                if (b.status === 'APPROVED') {
+                    statusBadge = `<span style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-circle-check"></i> Đã duyệt</span>`;
+                } else if (b.status === 'PENDING') {
+                    statusBadge = `<span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-clock"></i> Chờ duyệt</span>`;
+                } else if (b.status === 'REJECTED') {
+                    statusBadge = `<span style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-circle-xmark"></i> Từ chối</span>`;
+                } else {
+                    statusBadge = `<span style="background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-ban"></i> Đã hủy</span>`;
+                }
+
+                // Ghi chú (giới hạn 1000 ký tự)
+                let noteText = b.notes || (b.details && b.details['Ghi chú']) || '';
+                if (!noteText && b.details) {
+                    const extra = Object.entries(b.details).filter(([k]) => k !== 'Ghi chú').map(([k, v]) => `${k}: ${v}`).join('; ');
+                    if (extra) noteText = extra;
+                }
+
+                const isAdmin = currentAdminUser && currentAdminUser.role === 'ADMIN';
+                const actionHtml = isViewer
+                    ? `<span style="color:#94a3b8; font-size:12px; font-weight:500;"><i class="fa-solid fa-eye"></i> Chỉ xem</span>`
+                    : `<div style="display:inline-flex; gap:6px; align-items:center;">
+                           <button class="btn btn-secondary btn-icon" style="color: #2563eb;" onclick="openEditBookingModal('${b.id}')" title="Sửa lịch đăng ký sử dụng">
+                               <i class="fa-solid fa-pen-to-square"></i>
+                           </button>
+                           ${isAdmin ? `
+                           <button class="btn btn-secondary btn-icon" style="color: #ef4444;" onclick="deleteBooking('${b.id}')" title="Xóa lịch đăng ký sử dụng">
+                               <i class="fa-solid fa-trash-can"></i>
+                           </button>` : ''}
+                       </div>`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 700; color: #0f172a; max-width: 220px;">${b.title}</td>
+                    <td>
+                        <span class="user-role-tag role-editor" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
+                            <i class="fa-solid fa-cube" style="margin-right: 4px;"></i>${resName}
+                        </span>
+                    </td>
+                    <td style="font-weight: 600; color: #334155;"><i class="fa-regular fa-user" style="color: #94a3b8; margin-right: 5px;"></i>${personName}</td>
+                    <td><span style="color: #475569; font-weight: 500;"><i class="fa-solid fa-building" style="color: #94a3b8; font-size: 12px; margin-right: 5px;"></i>${deptName}</span></td>
+                    <td><span style="font-weight: 600; color: #0f172a;"><i class="fa-regular fa-calendar" style="color: #2563eb; margin-right: 5px;"></i>${dateDisplay}</span></td>
+                    <td><span style="font-weight: 700; color: #1d4ed8; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0;"><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${timeDisplay}</span></td>
+                    <td>${statusBadge}</td>
+                    <td style="max-width: 220px; font-size: 12.5px; color: #64748b; line-height: 1.4;" title="${noteText}">
+                        ${noteText ? (noteText.length > 70 ? noteText.substring(0, 70) + '...' : noteText) : '<span style="color:#cbd5e1;">-</span>'}
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">${actionHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // QUẢN LÝ LỊCH DÙNG & CẢNH BÁO TRÙNG LỊCH
+        // ==========================================
+        function populateResourceDropdown(selectElementId, preselectedId = null) {
+            const select = document.getElementById(selectElementId);
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Chọn tài nguyên sử dụng --</option>';
+
+            const cats = DataService.getCategories();
+            const resList = DataService.getResources();
+
+            cats.forEach(cat => {
+                const subRes = resList.filter(r => r.categoryId === cat.id);
+                if (subRes.length > 0) {
+                    const group = document.createElement('optgroup');
+                    group.label = `[${cat.catalogType || 'Tài nguyên'}] ${cat.name}`;
+
+                    const optAll = document.createElement('option');
+                    optAll.value = cat.id;
+                    optAll.textContent = `★ ${cat.name} (Tất cả / Chung)`;
+                    if (preselectedId && preselectedId === cat.id) optAll.selected = true;
+                    group.appendChild(optAll);
+
+                    subRes.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r.id;
+                        opt.textContent = `↳ ${r.name} (${r.location || r.capacity || ''})`;
+                        if (preselectedId && preselectedId === r.id) opt.selected = true;
+                        group.appendChild(opt);
+                    });
+                    select.appendChild(group);
+                } else {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    const meta = [cat.catalogType, cat.quantity, cat.managingDept].filter(Boolean).join(' • ');
+                    opt.textContent = `${cat.name}${meta ? ' (' + meta + ')' : ''}`;
+                    if (preselectedId && preselectedId === cat.id) opt.selected = true;
+                    select.appendChild(opt);
+                }
+            });
+
+            resList.forEach(r => {
+                if (!cats.some(c => c.id === r.categoryId)) {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.textContent = `${r.name} (${r.location || ''})`;
+                    if (preselectedId && preselectedId === r.id) opt.selected = true;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        function findOverlappingBookings(resourceId, date, startTime, endTime, excludeBookingId = null) {
+            if (!resourceId || !date || !startTime || !endTime) return [];
+            return bookings.filter(b => {
+                if (excludeBookingId && b.id === excludeBookingId) return false;
+                if (b.resourceId !== resourceId) return false;
+                if (b.date !== date) return false;
+                if (b.status === 'REJECTED' || b.status === 'CANCELLED') return false;
+                // Hai khoảng thời gian trùng nhau khi (startTime < b.endTime) && (endTime > b.startTime)
+                return (startTime < b.endTime) && (endTime > b.startTime);
+            });
+        }
+
+        function checkAddBookingOverlapLive() {
+            const resId = document.getElementById('bookingResourceSelect').value;
+            const date = document.getElementById('bookingDate').value;
+            const startTime = document.getElementById('bookingStartTime').value;
+            const endTime = document.getElementById('bookingEndTime').value;
+
+            const warnBox = document.getElementById('addBookingOverlapWarning');
+            const warnText = document.getElementById('addBookingOverlapText');
+            if (!warnBox || !warnText) return;
+
+            if (!resId || !date || !startTime || !endTime || startTime >= endTime) {
+                warnBox.style.display = 'none';
+                return;
+            }
+
+            const overlaps = findOverlappingBookings(resId, date, startTime, endTime);
+            if (overlaps.length > 0) {
+                const details = overlaps.map(o => `"${o.title}" (${o.startTime} - ${o.endTime}, ${o.userName})`).join('; ');
+                warnText.innerHTML = `⚠️ <b>Trùng lịch!</b> Tài nguyên này đã có lịch đặt trong khung giờ trên: ${details}`;
+                warnBox.style.display = 'flex';
+            } else {
+                warnBox.style.display = 'none';
+            }
+        }
+
+        function checkEditBookingOverlapLive() {
+            const bookingId = document.getElementById('editBookingId').value;
+            const resId = document.getElementById('editBookingResourceSelect').value;
+            const date = document.getElementById('editBookingDate').value;
+            const startTime = document.getElementById('editBookingStartTime').value;
+            const endTime = document.getElementById('editBookingEndTime').value;
+
+            const warnBox = document.getElementById('editBookingOverlapWarning');
+            const warnText = document.getElementById('editBookingOverlapText');
+            if (!warnBox || !warnText) return;
+
+            if (!resId || !date || !startTime || !endTime || startTime >= endTime) {
+                warnBox.style.display = 'none';
+                return;
+            }
+
+            const overlaps = findOverlappingBookings(resId, date, startTime, endTime, bookingId);
+            if (overlaps.length > 0) {
+                const details = overlaps.map(o => `"${o.title}" (${o.startTime} - ${o.endTime}, ${o.userName})`).join('; ');
+                warnText.innerHTML = `⚠️ <b>Trùng lịch!</b> Tài nguyên này đã có lịch đặt trong khung giờ trên: ${details}`;
+                warnBox.style.display = 'flex';
+            } else {
+                warnBox.style.display = 'none';
+            }
+        }
+
+        function updateNotesCharCount(textarea, counterId) {
+            if (!textarea) return;
+            const count = textarea.value.length;
+            const el = document.getElementById(counterId);
+            if (el) {
+                el.textContent = `${count}/1000 ký tự`;
+                el.style.color = count >= 950 ? '#ef4444' : '#64748b';
+            }
+        }
+
+        function openAddBookingModal(preselectedResourceId = null) {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép thêm lịch dùng!', 'error');
+                return;
+            }
+
+            populateResourceDropdown('bookingResourceSelect', preselectedResourceId);
+
+            // Default date to today
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('bookingDate').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('bookingStartTime').value = '08:00';
+            document.getElementById('bookingEndTime').value = '11:30';
+
+            document.getElementById('bookingTitle').value = '';
+            document.getElementById('bookingUserName').value = currentAdminUser ? (currentAdminUser.fullName || '') : '';
+            document.getElementById('bookingUserDept').value = currentAdminUser ? (currentAdminUser.department || '') : '';
+            document.getElementById('bookingStatus').value = 'APPROVED';
+            document.getElementById('bookingNotes').value = '';
+            updateNotesCharCount(document.getElementById('bookingNotes'), 'addBookingNotesCount');
+
+            checkAddBookingOverlapLive();
+
+            document.getElementById('addBookingModal').classList.add('active');
+        }
+
+        function handleAddBooking(e) {
+            e.preventDefault();
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép thêm lịch dùng!', 'error');
+                return;
+            }
+
+            const resourceId = document.getElementById('bookingResourceSelect').value;
+            const title = document.getElementById('bookingTitle').value.trim();
+            const date = document.getElementById('bookingDate').value;
+            const startTime = document.getElementById('bookingStartTime').value;
+            const endTime = document.getElementById('bookingEndTime').value;
+            const userName = document.getElementById('bookingUserName').value.trim();
+            const userDept = document.getElementById('bookingUserDept').value.trim();
+            const status = document.getElementById('bookingStatus').value;
+            const notes = document.getElementById('bookingNotes').value.trim();
+
+            if (!resourceId || !title || !date || !startTime || !endTime || !userName) {
+                showToast('Vui lòng điền đầy đủ các thông tin bắt buộc (*)!', 'error');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                showToast('Giờ kết thúc phải lớn hơn giờ bắt đầu!', 'error');
+                return;
+            }
+
+            // Kiểm tra và cảnh báo trùng lịch
+            const overlaps = findOverlappingBookings(resourceId, date, startTime, endTime);
+            if (overlaps.length > 0) {
+                const res = resources.find(r => r.id === resourceId) || categories.find(c => c.id === resourceId);
+                const resName = res ? res.name : resourceId;
+                const details = overlaps.map(o => `• Khung giờ: ${o.startTime} - ${o.endTime}\n  Mục đích: "${o.title}"\n  Người phụ trách: ${o.userName}${o.userDept ? ' - ' + o.userDept : ''}`).join('\n\n');
+                const confirmMsg = `⚠️ CẢNH BÁO TRÙNG LỊCH SỬ DỤNG!\n\n` +
+                    `Tài nguyên: ${resName}\n` +
+                    `Ngày sử dụng: ${date}\n` +
+                    `Khung giờ bạn chọn: ${startTime} - ${endTime}\n\n` +
+                    `Hiện đang BỊ TRÙNG với các lịch sau:\n${details}\n\n` +
+                    `Bạn có chắc chắn vẫn muốn lưu lịch trùng này không?`;
+                if (!confirm(confirmMsg)) {
+                    return;
+                }
+            }
+
+            const newBooking = {
+                id: 'book_' + Date.now(),
+                resourceId,
+                userId: currentAdminUser ? currentAdminUser.email : 'admin@company.vn',
+                userName: userName,
+                userDept: userDept,
+                title,
+                date,
+                startTime,
+                endTime,
+                status,
+                notes: notes,
+                details: notes ? { 'Ghi chú': notes } : {}
+            };
+
+            bookings.push(newBooking);
+            DataService.saveBookings(bookings);
+            closeModal('addBookingModal');
+            loadAdminData();
+            showToast('Đã thêm lịch đăng ký sử dụng mới thành công!', 'success');
+        }
+
+        function openEditBookingModal(bookingId) {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép sửa lịch dùng!', 'error');
+                return;
+            }
+            const b = bookings.find(x => x.id === bookingId);
+            if (!b) {
+                showToast('Không tìm thấy lịch sử dụng cần sửa!', 'error');
+                return;
+            }
+
+            populateResourceDropdown('editBookingResourceSelect', b.resourceId);
+
+            document.getElementById('editBookingId').value = b.id;
+            document.getElementById('editBookingTitle').value = b.title || '';
+            document.getElementById('editBookingDate').value = b.date || '';
+            document.getElementById('editBookingStartTime').value = b.startTime || '08:00';
+            document.getElementById('editBookingEndTime').value = b.endTime || '11:30';
+
+            let personName = b.userName || '';
+            let deptName = b.userDept || '';
+            if (!deptName && personName.includes('(') && personName.includes(')')) {
+                const m = personName.match(/^(.*?)\s*\((.*?)\)$/);
+                if (m) {
+                    personName = m[1].trim();
+                    deptName = m[2].trim();
+                }
+            }
+            document.getElementById('editBookingUserName').value = personName;
+            document.getElementById('editBookingUserDept').value = deptName;
+            document.getElementById('editBookingStatus').value = b.status || 'APPROVED';
+
+            const noteVal = b.notes || (b.details && b.details['Ghi chú']) || '';
+            document.getElementById('editBookingNotes').value = noteVal;
+            updateNotesCharCount(document.getElementById('editBookingNotes'), 'editBookingNotesCount');
+
+            checkEditBookingOverlapLive();
+
+            document.getElementById('editBookingModal').classList.add('active');
+        }
+
+        function handleEditBooking(e) {
+            e.preventDefault();
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép sửa lịch dùng!', 'error');
+                return;
+            }
+
+            const bookingId = document.getElementById('editBookingId').value;
+            const b = bookings.find(x => x.id === bookingId);
+            if (!b) return;
+
+            const resourceId = document.getElementById('editBookingResourceSelect').value;
+            const title = document.getElementById('editBookingTitle').value.trim();
+            const date = document.getElementById('editBookingDate').value;
+            const startTime = document.getElementById('editBookingStartTime').value;
+            const endTime = document.getElementById('editBookingEndTime').value;
+            const userName = document.getElementById('editBookingUserName').value.trim();
+            const userDept = document.getElementById('editBookingUserDept').value.trim();
+            const status = document.getElementById('editBookingStatus').value;
+            const notes = document.getElementById('editBookingNotes').value.trim();
+
+            if (!resourceId || !title || !date || !startTime || !endTime || !userName) {
+                showToast('Vui lòng điền đầy đủ các thông tin bắt buộc (*)!', 'error');
+                return;
+            }
+
+            if (startTime >= endTime) {
+                showToast('Giờ kết thúc phải lớn hơn giờ bắt đầu!', 'error');
+                return;
+            }
+
+            // Cảnh báo trùng lịch
+            const overlaps = findOverlappingBookings(resourceId, date, startTime, endTime, bookingId);
+            if (overlaps.length > 0) {
+                const res = resources.find(r => r.id === resourceId) || categories.find(c => c.id === resourceId);
+                const resName = res ? res.name : resourceId;
+                const details = overlaps.map(o => `• Khung giờ: ${o.startTime} - ${o.endTime}\n  Mục đích: "${o.title}"\n  Người phụ trách: ${o.userName}${o.userDept ? ' - ' + o.userDept : ''}`).join('\n\n');
+                const confirmMsg = `⚠️ CẢNH BÁO TRÙNG LỊCH SỬ DỤNG!\n\n` +
+                    `Tài nguyên: ${resName}\n` +
+                    `Ngày sử dụng: ${date}\n` +
+                    `Khung giờ bạn chọn: ${startTime} - ${endTime}\n\n` +
+                    `Hiện đang BỊ TRÙNG với các lịch sau:\n${details}\n\n` +
+                    `Bạn có chắc chắn vẫn muốn lưu thay đổi trùng lịch không?`;
+                if (!confirm(confirmMsg)) {
+                    return;
+                }
+            }
+
+            b.resourceId = resourceId;
+            b.title = title;
+            b.date = date;
+            b.startTime = startTime;
+            b.endTime = endTime;
+            b.userName = userName;
+            b.userDept = userDept;
+            b.status = status;
+            b.notes = notes;
+            if (!b.details) b.details = {};
+            if (notes) b.details['Ghi chú'] = notes; else delete b.details['Ghi chú'];
+
+            DataService.saveBookings(bookings);
+            closeModal('editBookingModal');
+            loadAdminData();
+            showToast('Đã cập nhật lịch đăng ký sử dụng thành công!', 'success');
+        }
+
+        function deleteBooking(bookingId) {
+            if (currentAdminUser && currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền xóa lịch dùng!', 'error');
+                return;
+            }
+            const b = bookings.find(x => x.id === bookingId);
+            const title = b ? `"${b.title}"` : 'lịch này';
+            if (!confirm(`Bạn có chắc chắn muốn xóa lịch đăng ký sử dụng ${title} không?`)) return;
+
+            bookings = bookings.filter(x => x.id !== bookingId);
+            DataService.saveBookings(bookings);
+            loadAdminData();
+            showToast('Đã xóa lịch đăng ký sử dụng thành công!', 'success');
+        }
+
+        function openAddResourceModal() {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép thêm mới!', 'error');
+                return;
+            }
+            const select = document.getElementById('newResCategory');
+            select.innerHTML = '';
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+            document.getElementById('addResourceModal').classList.add('active');
+        }
+
+        function handleAddResource(e) {
+            e.preventDefault();
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép thêm mới!', 'error');
+                return;
+            }
+            const newRes = {
+                id: 'res_' + Date.now(),
+                categoryId: document.getElementById('newResCategory').value,
+                name: document.getElementById('newResName').value.trim(),
+                location: document.getElementById('newResLocation').value.trim(),
+                capacity: document.getElementById('newResCapacity').value.trim() || 'Tiêu chuẩn',
+                status: 'ACTIVE',
+                calendarId: document.getElementById('newResCalendarId').value.trim()
+            };
+            resources.push(newRes);
+            DataService.saveResources(resources);
+            closeModal('addResourceModal');
+            loadAdminData();
+            showToast('Đã thêm tài nguyên mới và lưu an toàn vào bảng Sheet!', 'success');
+        }
+
+        function openEditResourceModal(resId) {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép sửa!', 'error');
+                return;
+            }
+            const res = resources.find(r => r.id === resId);
+            if (!res) return;
+
+            document.getElementById('editResId').value = res.id;
+
+            const select = document.getElementById('editResCategory');
+            select.innerHTML = '';
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                if (c.id === res.categoryId) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            document.getElementById('editResName').value = res.name || '';
+            document.getElementById('editResLocation').value = res.location || '';
+            document.getElementById('editResCapacity').value = res.capacity || '';
+            document.getElementById('editResCalendarId').value = res.calendarId || '';
+
+            document.getElementById('editResourceModal').classList.add('active');
+        }
+
+        function handleEditResource(e) {
+            e.preventDefault();
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép sửa!', 'error');
+                return;
+            }
+
+            const resId = document.getElementById('editResId').value;
+            const res = resources.find(r => r.id === resId);
+            if (!res) {
+                showToast('Không tìm thấy tài nguyên cần sửa!', 'error');
+                return;
+            }
+
+            res.categoryId = document.getElementById('editResCategory').value;
+            res.name = document.getElementById('editResName').value.trim();
+            res.location = document.getElementById('editResLocation').value.trim();
+            res.capacity = document.getElementById('editResCapacity').value.trim() || 'Tiêu chuẩn';
+            res.calendarId = document.getElementById('editResCalendarId').value.trim();
+
+            DataService.saveResources(resources);
+            closeModal('editResourceModal');
+            loadAdminData();
+            showToast('Đã cập nhật thông tin tài nguyên thành công!', 'success');
+        }
+
+        function deleteResource(resId) {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép xóa!', 'error');
+                return;
+            }
+            if (!confirm('Bạn có chắc chắn muốn xóa tài nguyên này khỏi bảng Sheet?')) return;
+            resources = resources.filter(r => r.id !== resId);
+            DataService.saveResources(resources);
+            loadAdminData();
+            showToast('Đã xóa tài nguyên!', 'success');
+        }
+
+        // Render Categories / Tài nguyên
+        function renderCategoriesTable() {
+            const tbody = document.getElementById('categoriesTableBody');
+            tbody.innerHTML = '';
+            const isViewer = currentAdminUser && currentAdminUser.role === 'VIEWER';
+
+            categories.forEach(cat => {
+                const tr = document.createElement('tr');
+                const catType = cat.catalogType || (cat.name === 'Phòng Máy' ? 'Cơ sở vật chất' : (cat.name === 'Xe Công Vụ' ? 'Phương tiện di chuyển' : 'Phòng chức năng'));
+                const qty = cat.quantity || (cat.name === 'Phòng Máy' ? '4 phòng' : (cat.name === 'Phòng Họp' ? '1 phòng' : (cat.name === 'Xe Công Vụ' ? '2 xe' : '1')));
+                const dept = cat.managingDept || cat.approverRole || (cat.name === 'Phòng Máy' ? 'Phòng CNTT & Khảo thí' : (cat.name === 'Phòng Họp' ? 'Phòng Hành chính - Quản trị' : 'Ban Hành chính / Đội xe'));
+                const desc = cat.description || (cat.name === 'Phòng Máy' ? 'Hệ thống phòng máy tính trạm và máy chủ phục vụ thi và đào tạo tại XT và HL.' : (cat.name === 'Phòng Họp' ? 'Phòng họp hội nghị tiêu chuẩn trang bị màn hình, micro và hội nghị trực tuyến.' : (cat.name === 'Xe Công Vụ' ? 'Xe 7 chỗ Ford Everest và Xe 4 chỗ Toyota Vios phục vụ công tác.' : '-')));
+
+                const isAdmin = currentAdminUser && currentAdminUser.role === 'ADMIN';
+                const actionHtml = isViewer
+                    ? `<span style="color:#94a3b8; font-size:12px; font-weight:500;"><i class="fa-solid fa-eye"></i> Chỉ xem</span>`
+                    : `<div style="display:inline-flex; gap:6px; align-items:center;">
+                           <button class="btn btn-secondary btn-icon" style="color: #059669;" onclick="openAddBookingModal('${cat.id}')" title="Thêm lịch dùng cho tài nguyên này">
+                               <i class="fa-solid fa-calendar-plus"></i>
+                           </button>
+                           <button class="btn btn-secondary btn-icon" style="color: #2563eb;" onclick="openEditCategoryModal('${cat.id}')" title="Sửa thông tin tài nguyên">
+                               <i class="fa-solid fa-pen-to-square"></i>
+                           </button>
+                           ${isAdmin ? `
+                           <button class="btn btn-secondary btn-icon" style="color: #ef4444;" onclick="deleteCategory('${cat.id}')" title="Xóa tài nguyên">
+                               <i class="fa-solid fa-trash-can"></i>
+                           </button>` : ''}
+                       </div>`;
+
+                tr.innerHTML = `
+                    <td style="font-weight: 700; color: #0f172a;">${cat.name}</td>
+                    <td><span class="user-role-tag role-editor" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;"><i class="fa-solid fa-folder-open" style="color:#2563eb;"></i> ${catType}</span></td>
+                    <td><span style="font-weight: 700; color: #1d4ed8; background: #eff6ff; padding: 4px 10px; border-radius: 6px; border: 1px solid #bfdbfe;">${qty}</span></td>
+                    <td><span style="color: #475569; font-weight: 500;"><i class="fa-solid fa-building" style="color: #94a3b8; font-size: 12px; margin-right: 5px;"></i>${dept}</span></td>
+                    <td style="max-width: 320px; font-size: 13px; color: #64748b; line-height: 1.4;" title="${desc}">
+                        ${desc.length > 90 ? desc.substring(0, 90) + '...' : desc}
+                    </td>
+                    <td style="text-align: right;">${actionHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddCategoryModal() {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép thêm mới!', 'error');
+                return;
+            }
+            document.getElementById('newCatName').value = '';
+            document.getElementById('newCatCatalogType').value = '';
+            document.getElementById('newCatQuantity').value = '';
+            document.getElementById('newCatDept').value = '';
+            document.getElementById('newCatDesc').value = '';
+            const counter = document.getElementById('descCharCount');
+            if (counter) counter.textContent = '0/1000 ký tự';
+            document.getElementById('addCategoryModal').classList.add('active');
+        }
+
+        function updateDescCharCount(textarea) {
+            const count = textarea.value.length;
+            const counterEl = document.getElementById('descCharCount');
+            if (counterEl) {
+                counterEl.textContent = `${count}/1000 ký tự`;
+                counterEl.style.color = count >= 950 ? '#ef4444' : '#64748b';
+            }
+        }
+
+        function handleAddCategory(e) {
+            e.preventDefault();
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép thêm mới!', 'error');
+                return;
+            }
+            const name = document.getElementById('newCatName').value.trim();
+            const catalogType = document.getElementById('newCatCatalogType').value.trim();
+            const quantity = document.getElementById('newCatQuantity').value.trim();
+            const managingDept = document.getElementById('newCatDept').value.trim();
+            const description = document.getElementById('newCatDesc').value.trim();
+
+            if (!name || !catalogType || !quantity || !managingDept) {
+                showToast('Vui lòng điền đầy đủ các thông tin bắt buộc!', 'error');
+                return;
+            }
+
+            // Gán icon và màu mặc định phù hợp theo tên
+            let icon = 'fa-cubes';
+            let color = '#2563eb';
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes('máy') || lowerName.includes('lab') || lowerName.includes('tính')) {
+                icon = 'fa-desktop'; color = '#2563eb';
+            } else if (lowerName.includes('họp') || lowerName.includes('hội')) {
+                icon = 'fa-users'; color = '#059669';
+            } else if (lowerName.includes('xe') || lowerName.includes('ô tô')) {
+                icon = 'fa-car-side'; color = '#d97706';
+            } else if (lowerName.includes('thiết bị') || lowerName.includes('quay') || lowerName.includes('máy ảnh')) {
+                icon = 'fa-video'; color = '#7c3aed';
+            }
+
+            const newCat = {
+                id: 'cat_' + Date.now(),
+                name,
+                catalogType,
+                quantity,
+                managingDept,
+                description,
+                approverRole: managingDept,
+                requiresApproval: true,
+                slug: name.toLowerCase().replace(/ /g, '-'),
+                icon,
+                color,
+                fields: [{ id: 'purpose', label: 'Mục đích sử dụng', type: 'text', required: true }]
+            };
+
+            categories.push(newCat);
+            DataService.saveCategories(categories);
+            closeModal('addCategoryModal');
+            loadAdminData();
+            showToast('Đã thêm tài nguyên mới và lưu an toàn vào bảng Sheet!', 'success');
+        }
+
+        function openEditCategoryModal(catId) {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép sửa!', 'error');
+                return;
+            }
+            const cat = categories.find(c => c.id === catId);
+            if (!cat) return;
+
+            document.getElementById('editCatId').value = cat.id;
+            document.getElementById('editCatName').value = cat.name || '';
+            document.getElementById('editCatCatalogType').value = cat.catalogType || (cat.name === 'Phòng Máy' ? 'Cơ sở vật chất' : (cat.name === 'Xe Công Vụ' ? 'Phương tiện di chuyển' : 'Phòng chức năng'));
+            document.getElementById('editCatQuantity').value = cat.quantity || (cat.name === 'Phòng Máy' ? '4 phòng' : (cat.name === 'Phòng Họp' ? '1 phòng' : (cat.name === 'Xe Công Vụ' ? '2 xe' : '1')));
+            document.getElementById('editCatDept').value = cat.managingDept || cat.approverRole || '';
+            const desc = cat.description || (cat.name === 'Phòng Máy' ? 'Hệ thống phòng máy tính trạm và máy chủ phục vụ thi và đào tạo tại XT và HL.' : (cat.name === 'Phòng Họp' ? 'Phòng họp hội nghị tiêu chuẩn trang bị màn hình, micro và hội nghị trực tuyến.' : (cat.name === 'Xe Công Vụ' ? 'Xe 7 chỗ Ford Everest và Xe 4 chỗ Toyota Vios phục vụ công tác.' : '')));
+            document.getElementById('editCatDesc').value = desc;
+
+            const counter = document.getElementById('editDescCharCount');
+            if (counter) {
+                counter.textContent = `${desc.length}/1000 ký tự`;
+                counter.style.color = desc.length >= 950 ? '#ef4444' : '#64748b';
+            }
+
+            document.getElementById('editCategoryModal').classList.add('active');
+        }
+
+        function updateEditDescCharCount(textarea) {
+            const count = textarea.value.length;
+            const counterEl = document.getElementById('editDescCharCount');
+            if (counterEl) {
+                counterEl.textContent = `${count}/1000 ký tự`;
+                counterEl.style.color = count >= 950 ? '#ef4444' : '#64748b';
+            }
+        }
+
+        function handleEditCategory(e) {
+            e.preventDefault();
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép sửa!', 'error');
+                return;
+            }
+
+            const catId = document.getElementById('editCatId').value;
+            const cat = categories.find(c => c.id === catId);
+            if (!cat) {
+                showToast('Không tìm thấy tài nguyên cần sửa!', 'error');
+                return;
+            }
+
+            const name = document.getElementById('editCatName').value.trim();
+            const catalogType = document.getElementById('editCatCatalogType').value.trim();
+            const quantity = document.getElementById('editCatQuantity').value.trim();
+            const managingDept = document.getElementById('editCatDept').value.trim();
+            const description = document.getElementById('editCatDesc').value.trim();
+
+            if (!name || !catalogType || !quantity || !managingDept) {
+                showToast('Vui lòng điền đầy đủ các thông tin bắt buộc!', 'error');
+                return;
+            }
+
+            cat.name = name;
+            cat.catalogType = catalogType;
+            cat.quantity = quantity;
+            cat.managingDept = managingDept;
+            cat.approverRole = managingDept;
+            cat.description = description;
+
+            DataService.saveCategories(categories);
+            closeModal('editCategoryModal');
+            loadAdminData();
+            showToast('Đã cập nhật thông tin tài nguyên và lưu thành công vào bảng Sheet!', 'success');
+        }
+
+        function deleteCategory(catId) {
+            if (currentAdminUser && currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền xóa tài nguyên!', 'error');
+                return;
+            }
+            if (!confirm('Bạn có chắc chắn muốn xóa tài nguyên này khỏi bảng Sheet?')) return;
+            categories = categories.filter(c => c.id !== catId);
+            DataService.saveCategories(categories);
+            loadAdminData();
+            showToast('Đã xóa tài nguyên!', 'success');
+        }
+
+        // Render Whitelist
+        function renderWhitelistTable() {
+            const tbody = document.getElementById('whitelistTableBody');
+            tbody.innerHTML = '';
+            whitelist.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: #2563eb;">${u.email}</td>
+                    <td>${u.fullName}</td>
+                    <td>${u.department}</td>
+                    <td>
+                        <select class="form-control" style="padding: 4px 8px; width: auto;" onchange="updateUserRole('${u.email}', this.value)">
+                            <option value="VIEWER" ${u.role === 'VIEWER' ? 'selected' : ''}>VIEWER (Chỉ xem)</option>
+                            <option value="EDITOR" ${u.role === 'EDITOR' ? 'selected' : ''}>EDITOR (Người sửa/đặt)</option>
+                            <option value="ADMIN" ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN (Quản trị viên)</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span style="font-family: monospace; font-size: 13px; color: #64748b; letter-spacing: 2px;">••••••</span>
+                        <button class="btn btn-secondary btn-sm" style="padding: 3px 8px; font-size: 11px; margin-left: 6px;" onclick="openAdminResetUserPassModal('${u.email}')" title="Đổi hoặc đặt lại mật khẩu cho cán bộ này">
+                            <i class="fa-solid fa-key" style="color: #f59e0b;"></i> Đổi MK
+                        </button>
+                    </td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-secondary btn-icon" style="color: #ef4444;" onclick="deleteWhitelistUser('${u.email}')" title="Xóa tài khoản">
+                            <i class="fa-solid fa-user-minus"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddWhitelistModal() {
+            if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền quản lý tài khoản!', 'error');
+                return;
+            }
+            document.getElementById('newWhEmail').value = '';
+            document.getElementById('newWhName').value = '';
+            document.getElementById('newWhDept').value = '';
+            document.getElementById('newWhPassword').value = '123456';
+            document.getElementById('addWhitelistModal').classList.add('active');
+        }
+
+        function handleAddWhitelist(e) {
+            e.preventDefault();
+            if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền quản lý tài khoản!', 'error');
+                return;
+            }
+            const email = document.getElementById('newWhEmail').value.trim();
+            const fullName = document.getElementById('newWhName').value.trim();
+            const department = document.getElementById('newWhDept').value.trim() || 'Nhân sự';
+            const role = document.getElementById('newWhRole').value;
+            const password = document.getElementById('newWhPassword').value.trim() || '123456';
+
+            if (whitelist.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+                showToast('Email này đã có trong bảng Sheet!', 'error');
+                return;
+            }
+
+            whitelist.push({ email, fullName, department, role, password });
+            DataService.saveWhitelist(whitelist);
+            closeModal('addWhitelistModal');
+            loadAdminData();
+            showToast('Đã thêm tài khoản mới và lưu an toàn vào bảng Sheet!', 'success');
+        }
+
+        function updateUserRole(email, newRole) {
+            if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền cập nhật quyền!', 'error');
+                return;
+            }
+            const u = whitelist.find(x => x.email === email);
+            if (u) {
+                u.role = newRole;
+                DataService.saveWhitelist(whitelist);
+                showToast(`Đã lưu quyền mới của ${email} vào bảng Sheet!`, 'success');
+            }
+        }
+
+        function deleteWhitelistUser(email) {
+            if (!currentAdminUser || currentAdminUser.role !== 'ADMIN') {
+                showToast('Chỉ Quản trị viên (ADMIN) mới có quyền xóa tài khoản!', 'error');
+                return;
+            }
+            if (!confirm(`Xóa email ${email} khỏi bảng Sheet?`)) return;
+            whitelist = whitelist.filter(u => u.email !== email);
+            DataService.saveWhitelist(whitelist);
+            loadAdminData();
+            showToast('Đã xóa khỏi bảng Sheet!', 'success');
+        }
+
+        // Render Approvals Queue
+        function renderApprovalsTable() {
+            const tbody = document.getElementById('approvalsTableBody');
+            tbody.innerHTML = '';
+            const isViewer = currentAdminUser && currentAdminUser.role === 'VIEWER';
+            const pendingList = bookings.filter(b => b.status === 'PENDING');
+            document.getElementById('pendingBadge').textContent = pendingList.length;
+
+            if (pendingList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color:#64748b;">Không có yêu cầu nào đang chờ duyệt.</td></tr>`;
+                return;
+            }
+
+            pendingList.forEach(b => {
+                const res = resources.find(r => r.id === b.resourceId);
+                const cat = categories.find(c => c.id === b.resourceId);
+                const resName = (res ? res.name : (cat ? cat.name : b.resourceId));
+                const tr = document.createElement('tr');
+                const actionHtml = isViewer
+                    ? `<span style="color:#94a3b8; font-size:12px; font-weight:500;"><i class="fa-solid fa-eye"></i> Chỉ xem</span>`
+                    : `
+                        <button class="btn btn-success" style="padding: 4px 10px; font-size:12px;" onclick="approveBooking('${b.id}')">
+                            <i class="fa-solid fa-check"></i> Duyệt
+                        </button>
+                        <button class="btn btn-secondary" style="padding: 4px 10px; font-size:12px; color:#ef4444;" onclick="rejectBooking('${b.id}')">
+                            <i class="fa-solid fa-xmark"></i> Từ chối
+                        </button>
+                    `;
+
+                tr.innerHTML = `
+                    <td style="font-weight: 600;">${b.title}</td>
+                    <td><span class="user-role-tag role-editor">${resName}</span></td>
+                    <td>${b.startTime} - ${b.endTime} (${b.date})</td>
+                    <td>${b.userName} (${b.userId})</td>
+                    <td style="font-size: 12px; color:#64748b;">${JSON.stringify(b.details)}</td>
+                    <td style="text-align: right; white-space: nowrap;">${actionHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function approveBooking(bookingId) {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép duyệt yêu cầu!', 'error');
+                return;
+            }
+            const b = bookings.find(x => x.id === bookingId);
+            if (b) {
+                b.status = 'APPROVED';
+                DataService.saveBookings(bookings);
+                loadAdminData();
+                showToast('Đã phê duyệt yêu cầu đặt lịch!', 'success');
+            }
+        }
+
+        function rejectBooking(bookingId) {
+            if (currentAdminUser && currentAdminUser.role === 'VIEWER') {
+                showToast('Tài khoản Viewer chỉ có quyền xem, không được phép từ chối!', 'error');
+                return;
+            }
+            const b = bookings.find(x => x.id === bookingId);
+            if (b) {
+                b.status = 'REJECTED';
+                DataService.saveBookings(bookings);
+                loadAdminData();
+                showToast('Đã từ chối yêu cầu đặt lịch!', 'info');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info');
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 250);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

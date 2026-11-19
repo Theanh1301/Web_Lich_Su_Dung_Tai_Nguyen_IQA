@@ -1,0 +1,16 @@
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary Files
+*.tmp
+*.bak
+backups/*.json
+
+# Keep sheet_data.js and sheet_data.json
+!sheet_data.js
+!sheet_data.json
+
