@@ -207,10 +207,10 @@
         <!-- Navigation Tabs -->
         <div class="admin-nav-tabs">
             <button class="admin-tab-btn active" id="navTabResources" onclick="switchAdminTab('tabResources')">
-                <i class="fa-solid fa-cubes-stacked"></i> Quản lý tài nguyên
+                <i class="fa-solid fa-calendar-check"></i> Quản lý lịch dùng
             </button>
             <button class="admin-tab-btn" id="navTabCategories" onclick="switchAdminTab('tabCategories')">
-                <i class="fa-solid fa-layer-group"></i> Tài nguyên
+                <i class="fa-solid fa-cubes-stacked"></i> Danh mục tài nguyên
             </button>
             <button class="admin-tab-btn" id="navTabWhitelist" onclick="switchAdminTab('tabWhitelist')">
                 <i class="fa-solid fa-users-gear"></i> Tài khoản
@@ -942,6 +942,16 @@
         let bookings = [];
         let currentAdminUser = null;
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             checkAutoSaveEnvironment();
             checkAdminAuth();
@@ -1150,16 +1160,27 @@
         function checkAutoSaveEnvironment() {
             const badge = document.getElementById('fileAccessStatusBadge');
             const btnGrant = document.getElementById('btnGrantFileAccess');
+            const isHttps = window.location.protocol === 'https:';
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+            const isFileProtocol = window.location.protocol === 'file:';
+            const isWebHosting = isHttps || (!isLocalhost && !isFileProtocol);
+            const hasGoogleSheet = !!DataService.getGoogleSheetUrl();
 
-            if (window.location.protocol.startsWith('http')) {
-                // Đang chạy qua Local Server start_server.bat
+            if (DataService.isServerConnected) {
                 badge.innerHTML = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đang chạy qua Máy chủ nội bộ: Mọi thay đổi được TỰ ĐỘNG GHI TỨC THÌ vào sheet_data.js!</span>';
+                if (btnGrant) btnGrant.style.display = 'none';
+            } else if (hasGoogleSheet) {
+                badge.innerHTML = '<span style="color:#2563eb; font-weight:700;"><i class="fa-solid fa-cloud"></i> Đang đồng bộ trực tuyến với Google Sheets: Dữ liệu được lưu an toàn 2 chiều lên Drive của Viện!</span>';
+                if (btnGrant) btnGrant.style.display = 'none';
+            } else if (isWebHosting) {
+                badge.innerHTML = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Chế độ Web / Trực tuyến: Dữ liệu được lưu an toàn trong trình duyệt (LocalStorage). Kết nối Google Sheets bên dưới để chia sẻ giữa nhiều thiết bị!</span>';
                 if (btnGrant) btnGrant.style.display = 'none';
             } else if (window.localFileHandle) {
                 badge.innerHTML = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đã cấp quyền File System: Mọi thay đổi được TỰ ĐỘNG GHI TỨC THÌ vào sheet_data.js!</span>';
                 if (btnGrant) btnGrant.style.display = 'none';
             } else {
-                badge.innerHTML = 'Đang mở file trực tiếp. Khuyên dùng: Nhấp đúp file <b>start_server.bat</b> trong thư mục để tự động lưu tức thì, hoặc bấm nút cấp quyền bên phải.';
+                badge.innerHTML = '<span style="color:#d97706; font-weight:700;"><i class="fa-solid fa-circle-info"></i> Đang lưu trên trình duyệt. Mẹo: Bạn có thể nhấp đúp file <b>start_server.bat</b> trong thư mục để tự động lưu tức thì vào ổ cứng!</span>';
+                if (btnGrant) btnGrant.style.display = 'inline-flex';
             }
         }
 
@@ -2189,12 +2210,29 @@
                         </button>
                     `;
 
+                let detailItems = [];
+                if (b.notes && b.notes.trim()) {
+                    detailItems.push(`<div><b style="color:#334155;">Ghi chú:</b> <span style="color:#475569;">${escapeHtml(b.notes)}</span></div>`);
+                }
+                if (b.details && typeof b.details === 'object') {
+                    for (const [k, v] of Object.entries(b.details)) {
+                        if (k === 'Ghi chú' && b.notes) continue;
+                        if (v !== undefined && v !== null && v !== '') {
+                            const displayVal = Array.isArray(v) ? v.join(', ') : v;
+                            detailItems.push(`<div><b style="color:#334155;">${escapeHtml(k)}:</b> <span style="color:#475569;">${escapeHtml(String(displayVal))}</span></div>`);
+                        }
+                    }
+                }
+                const detailHtml = detailItems.length > 0
+                    ? `<div style="font-size: 12px; line-height: 1.5;">${detailItems.join('')}</div>`
+                    : `<span style="color:#94a3b8; font-style:italic; font-size:12px;">(Không có)</span>`;
+
                 tr.innerHTML = `
-                    <td style="font-weight: 600;">${b.title}</td>
-                    <td><span class="user-role-tag role-editor">${resName}</span></td>
+                    <td style="font-weight: 600;">${escapeHtml(b.title)}</td>
+                    <td><span class="user-role-tag role-editor">${escapeHtml(resName)}</span></td>
                     <td>${b.startTime} - ${b.endTime} (${b.date})</td>
-                    <td>${b.userName} (${b.userId})</td>
-                    <td style="font-size: 12px; color:#64748b;">${JSON.stringify(b.details)}</td>
+                    <td>${escapeHtml(b.userName)} (${escapeHtml(b.userId)})</td>
+                    <td style="font-size: 12px; color:#64748b;">${detailHtml}</td>
                     <td style="text-align: right; white-space: nowrap;">${actionHtml}</td>
                 `;
                 tbody.appendChild(tr);

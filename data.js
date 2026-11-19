@@ -332,6 +332,17 @@ const DataService = {
      * Kiểm tra trạng thái máy chủ start_server.bat
      */
     async checkServerConnection() {
+        const isHttps = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+        const isFileProtocol = window.location.protocol === 'file:';
+        const isWebHosting = isHttps || (!isLocalhost && !isFileProtocol);
+
+        if (isWebHosting) {
+            // Trên môi trường Web / GitHub Pages: không gọi http://localhost để tránh Mixed Content & CORS block
+            this.updateServerStatusBadge(false);
+            return false;
+        }
+
         const candidateBases = [
             window.location.protocol.startsWith('http') ? '' : null,
             this.activeApiBase || null,
@@ -364,6 +375,12 @@ const DataService = {
      * Nạp trực tiếp tệp sheet_data.json từ máy chủ (bỏ qua cache trình duyệt)
      */
     async refreshFromDiskJson() {
+        const isHttps = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+        const isFileProtocol = window.location.protocol === 'file:';
+        const isWebHosting = isHttps || (!isLocalhost && !isFileProtocol);
+        if (isWebHosting) return;
+
         try {
             const base = this.activeApiBase || (window.location.protocol.startsWith('http') ? '' : 'http://localhost:8080');
             const res = await fetch((base === '' ? '' : base) + '/sheet_data.json?t=' + Date.now(), { cache: 'no-store' });
@@ -392,22 +409,44 @@ const DataService = {
      */
     updateServerStatusBadge(isConnected, port) {
         this.isServerConnected = isConnected;
+        const isHttps = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+        const isFileProtocol = window.location.protocol === 'file:';
+        const isWebHosting = isHttps || (!isLocalhost && !isFileProtocol);
+        const hasGoogleSheet = !!this.getGoogleSheetUrl();
+
         const pills = document.querySelectorAll('.auto-save-pill, #autoSavePill');
         pills.forEach(pill => {
             if (isConnected) {
                 pill.style.background = '#f0fdf4';
                 pill.style.borderColor = '#86efac';
                 pill.style.color = '#15803d';
-                pill.title = 'Máy chủ nội bộ đang hoạt động. Mọi thay đổi đều tự động ghi tức thì vào file sheet_data.js';
-                pill.innerHTML = '<span class="pulse-dot" style="background:#16a34a;"></span> <span>Tự động lưu: <b>sheet_data.js (Đang kết nối)</b></span>';
-                pill.onclick = null;
-                pill.style.cursor = 'default';
+                pill.title = 'Máy chủ nội bộ đang hoạt động. Mọi thay đổi đều tự động ghi tức thì vào file sheet_data.js. Nhấp để xem chi tiết.';
+                pill.innerHTML = '<span class="pulse-dot" style="background:#16a34a;"></span> <span>Tự động lưu: <b>Máy chủ nội bộ</b></span>';
+                pill.onclick = () => this.showServerGuideModal();
+                pill.style.cursor = 'pointer';
+            } else if (hasGoogleSheet) {
+                pill.style.background = '#eff6ff';
+                pill.style.borderColor = '#93c5fd';
+                pill.style.color = '#1d4ed8';
+                pill.title = 'Hệ thống đang đồng bộ với Google Sheets của Viện. Nhấp để xem thông tin lưu trữ.';
+                pill.innerHTML = '<span class="pulse-dot" style="background:#2563eb;"></span> <span>Đồng bộ: <b>Google Sheets</b></span>';
+                pill.onclick = () => this.showServerGuideModal();
+                pill.style.cursor = 'pointer';
+            } else if (isWebHosting) {
+                pill.style.background = '#f0fdf4';
+                pill.style.borderColor = '#86efac';
+                pill.style.color = '#15803d';
+                pill.title = 'Dữ liệu đang được lưu an toàn trong trình duyệt (LocalStorage). Nhấp để xem hướng dẫn đồng bộ.';
+                pill.innerHTML = '<span class="pulse-dot" style="background:#16a34a;"></span> <span>Lưu trữ: <b>Trình duyệt Web</b></span>';
+                pill.onclick = () => this.showServerGuideModal();
+                pill.style.cursor = 'pointer';
             } else {
-                pill.style.background = '#fef2f2';
-                pill.style.borderColor = '#fca5a5';
-                pill.style.color = '#b91c1c';
-                pill.title = 'Chưa chạy file start_server.bat! Nhấp vào đây để xem hướng dẫn.';
-                pill.innerHTML = '<span class="pulse-dot" style="background:#dc2626; animation:none;"></span> <span>⚠️ Chưa chạy <b>start_server.bat</b></span>';
+                pill.style.background = '#fffbeb';
+                pill.style.borderColor = '#fde68a';
+                pill.style.color = '#b45309';
+                pill.title = 'Đang lưu trong trình duyệt. Mẹo: Bạn có thể nhấp đúp file start_server.bat để tự động ghi thẳng vào file. Nhấp để xem.';
+                pill.innerHTML = '<span class="pulse-dot" style="background:#f59e0b;"></span> <span>Lưu trữ: <b>Trình duyệt (Offline)</b></span>';
                 pill.onclick = () => this.showServerGuideModal();
                 pill.style.cursor = 'pointer';
             }
@@ -417,20 +456,110 @@ const DataService = {
         if (badge) {
             if (isConnected) {
                 badge.innerHTML = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Máy chủ nội bộ ĐANG HOẠT ĐỘNG: Mọi thay đổi được TỰ ĐỘNG GHI TỨC THÌ vào sheet_data.js!</span>';
+            } else if (hasGoogleSheet) {
+                badge.innerHTML = '<span style="color:#2563eb; font-weight:700;"><i class="fa-solid fa-cloud"></i> Đang đồng bộ trực tuyến với Google Sheets: Dữ liệu được lưu an toàn 2 chiều lên Drive của Viện!</span>';
+            } else if (isWebHosting) {
+                badge.innerHTML = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Chế độ Web / Trực tuyến: Dữ liệu được lưu an toàn trong trình duyệt (LocalStorage). Kết nối Google Sheets bên dưới để chia sẻ giữa nhiều thiết bị!</span>';
             } else {
-                badge.innerHTML = '<span style="color:#dc2626; font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Chưa kết nối máy chủ: Vui lòng nhấp đúp file <b>start_server.bat</b> trong thư mục để tự động lưu tức thì vào ổ cứng!</span>';
+                badge.innerHTML = '<span style="color:#d97706; font-weight:700;"><i class="fa-solid fa-circle-info"></i> Đang lưu trên trình duyệt. Mẹo: Bạn có thể nhấp đúp file <b>start_server.bat</b> trong thư mục để tự động lưu tức thì vào ổ cứng!</span>';
             }
         }
     },
 
     showServerGuideModal() {
-        alert(
-            "CÁCH KÍCH HOẠT TỰ ĐỘNG LƯU VĨNH VIỄN VÀO FILE sheet_data.js:\n\n" +
-            "1. Mở thư mục phần mềm: d:\\Antigravity IDE\\WebLich\n" +
-            "2. Nhấp đúp chuột vào file: start_server.bat\n" +
-            "3. THU NHỎ cửa sổ dòng lệnh màu đen đó xuống thanh Taskbar (KHÔNG BẤM NÚT TẮT X)\n\n" +
-            "Khi đó hệ thống sẽ tự động ghi tức thì mọi thay đổi vào file sheet_data.js trên máy tính. Dù bạn xóa dữ liệu duyệt web hay reset trình duyệt thì dữ liệu mới vẫn an toàn 100%!"
-        );
+        const isHttps = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+        const isFileProtocol = window.location.protocol === 'file:';
+        const isWebHosting = isHttps || (!isLocalhost && !isFileProtocol);
+        const hasGoogleSheet = !!this.getGoogleSheetUrl();
+        const googleUrl = this.getGoogleSheetUrl();
+
+        let modal = document.getElementById('weblichStorageStatusModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'weblichStorageStatusModal';
+            modal.className = 'modal-backdrop';
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            };
+            document.body.appendChild(modal);
+        }
+
+        const serverStatusHtml = this.isServerConnected
+            ? '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đang hoạt động (Tự động ghi tức thì vào file sheet_data.js)</span>'
+            : (isWebHosting
+                ? '<span style="color:#64748b;"><i class="fa-solid fa-circle-info"></i> Không áp dụng (Đang chạy trực tuyến trên Web)</span>'
+                : '<span style="color:#d97706; font-weight:600;"><i class="fa-solid fa-circle-pause"></i> Chưa bật (Chỉ cần nhấp đúp file start_server.bat trong thư mục dự án)</span>');
+
+        const webStorageStatusHtml = '<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Đang hoạt động an toàn (Dữ liệu được lưu trữ bảo vệ trong trình duyệt)</span>';
+
+        const cloudStatusHtml = hasGoogleSheet
+            ? `<span style="color:#2563eb; font-weight:700;"><i class="fa-solid fa-cloud"></i> Đã kết nối: ${googleUrl.length > 50 ? googleUrl.substring(0, 50) + '...' : googleUrl}</span>`
+            : '<span style="color:#64748b;"><i class="fa-solid fa-circle-notch"></i> Chưa cấu hình (Tùy chọn kết nối qua Google Apps Script)</span>';
+
+        modal.innerHTML = `
+            <div class="modal-card" style="max-width: 600px;">
+                <div class="modal-header">
+                    <div class="modal-title" style="display:flex; align-items:center; gap:8px; font-size:16px;">
+                        <i class="fa-solid fa-shield-halved" style="color: #2563eb;"></i>
+                        <span>Trạng Thái Lưu Trữ & Đồng Bộ Dữ Liệu</span>
+                    </div>
+                    <button class="btn-close" onclick="document.getElementById('weblichStorageStatusModal').classList.remove('active')">&times;</button>
+                </div>
+                <div class="modal-body" style="font-size:13px; line-height:1.6; color:#334155;">
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:16px;">
+                        <div style="font-weight:700; color:#1e293b; margin-bottom:10px; font-size:13.5px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+                            📊 Trạng thái hệ thống lưu trữ hiện tại:
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <b>1. Bộ nhớ trình duyệt (Web Storage):</b><br>${webStorageStatusHtml}
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <b>2. Đồng bộ Google Sheets (Trực tuyến):</b><br>${cloudStatusHtml}
+                        </div>
+                        <div>
+                            <b>3. Máy chủ nội bộ (start_server.bat):</b><br>${serverStatusHtml}
+                        </div>
+                    </div>
+
+                    <h4 style="font-size:13.5px; font-weight:700; color:#0f172a; margin-bottom:8px;">
+                        💡 Hướng dẫn 3 phương thức lưu trữ linh hoạt:
+                    </h4>
+
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px;">
+                            <div style="font-weight:700; color:#1e40af;"><i class="fa-solid fa-globe"></i> 1. Chạy trên GitHub / Web (Trực tuyến):</div>
+                            <div style="color:#475569; font-size:12.5px; margin-top:2px;">
+                                Dữ liệu luôn được lưu an toàn trong trình duyệt của bạn. Để đồng bộ dữ liệu giữa tất cả cán bộ trong cơ quan, chỉ cần vào tab <b>"Quản Lý Bảng Sheet"</b> và dán link Google Apps Script (tệp <code>google-sheet-sync.gs</code>).
+                            </div>
+                        </div>
+
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px;">
+                            <div style="font-weight:700; color:#166534;"><i class="fa-solid fa-server"></i> 2. Chạy trên máy tính cơ quan (Offline / Local):</div>
+                            <div style="color:#475569; font-size:12.5px; margin-top:2px;">
+                                Nhấp đúp vào file <b>start_server.bat</b> trong thư mục phần mềm. Cửa sổ máy chủ sẽ mở và tự động ghi thẳng mọi thay đổi vào file <code>sheet_data.js</code> trên ổ đĩa.
+                            </div>
+                        </div>
+
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px;">
+                            <div style="font-weight:700; color:#7c3aed;"><i class="fa-solid fa-download"></i> 3. Xuất & Tải file sao lưu bất kỳ lúc nào:</div>
+                            <div style="color:#475569; font-size:12.5px; margin-top:2px;">
+                                Bạn có thể bấm nút <b>"Tải File sheet_data.js"</b> bên dưới để lấy file dữ liệu mới nhất và sao lưu hoặc đẩy lên GitHub.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <button class="btn btn-secondary" onclick="DataService.downloadSharedSheetDataJs()">
+                        <i class="fa-solid fa-download" style="color:#059669;"></i> Tải File sheet_data.js
+                    </button>
+                    <button class="btn btn-primary" onclick="document.getElementById('weblichStorageStatusModal').classList.remove('active')">
+                        Đã Hiểu & Đóng
+                    </button>
+                </div>
+            </div>
+        `;
+        modal.classList.add('active');
     },
 
     showSaveWarning(msg) {
@@ -440,14 +569,14 @@ const DataService = {
             el.id = 'weblichAutoSaveNotice';
             document.body.appendChild(el);
         }
-        el.style.cssText = 'position:fixed; bottom:20px; left:20px; z-index:9999; background:#991b1b; color:#ffffff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.25); display:flex; align-items:center; gap:10px; transition:opacity 0.25s ease; font-family:system-ui,sans-serif; cursor:pointer;';
-        el.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size:16px;"></i> <span>' + msg + '</span> <button style="margin-left:8px; background:#fff; color:#991b1b; border:none; padding:3px 8px; border-radius:4px; font-weight:700; cursor:pointer;">Xem cách mở</button>';
+        el.style.cssText = 'position:fixed; bottom:20px; left:20px; z-index:9999; background:#0369a1; color:#ffffff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.25); display:flex; align-items:center; gap:10px; transition:opacity 0.25s ease; font-family:system-ui,sans-serif; cursor:pointer;';
+        el.innerHTML = '<i class="fa-solid fa-circle-info" style="font-size:16px;"></i> <span>' + msg + '</span> <button style="margin-left:8px; background:#fff; color:#0369a1; border:none; padding:3px 8px; border-radius:4px; font-weight:700; cursor:pointer;">Xem chi tiết</button>';
         el.onclick = () => this.showServerGuideModal();
         el.style.opacity = '1';
         clearTimeout(window._saveNoticeTimer);
         window._saveNoticeTimer = setTimeout(() => {
             el.style.opacity = '0';
-        }, 6000);
+        }, 5000);
     },
 
     // 1. TÀI NGUYÊN (RESOURCES)
@@ -777,42 +906,58 @@ const DataService = {
             bookings: this.getBookings()
         };
 
-        const candidateBases = [
-            window.location.protocol.startsWith('http') ? '' : null,
-            this.activeApiBase || null,
-            'http://localhost:8080',
-            'http://127.0.0.1:8080',
-            'http://localhost:8081',
-            'http://localhost:8082',
-            'http://localhost:8088'
-        ].filter(b => b !== null);
+        window.SHARED_SHEET_DATA = payload;
 
-        const uniqueBases = Array.from(new Set(candidateBases));
+        const isHttps = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+        const isFileProtocol = window.location.protocol === 'file:';
+        const isWebHosting = isHttps || (!isLocalhost && !isFileProtocol);
 
+        // 1. Nếu có kết nối Google Sheets: Tự động đẩy lên Google Sheets
+        const sheetUrl = this.getGoogleSheetUrl();
+        if (sheetUrl && sheetUrl.startsWith('http')) {
+            this.pushToGoogleSheetAsync(sheetUrl, payload);
+        }
+
+        // 2. Thử gửi tới máy chủ start_server.bat (chỉ chạy khi ở môi trường Local / Desktop)
         let saved = false;
-        for (const base of uniqueBases) {
-            try {
-                const ep = (base === '' ? '' : base) + '/api/save';
-                const res = await fetch(ep, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    saved = true;
-                    this.activeApiBase = base;
-                    localStorage.setItem('weblich_sheet_file_timestamp', payload.updatedAt);
-                    this.updateServerStatusBadge(true);
-                    this.showSaveNotification('Đã tự động ghi tức thì vào file sheet_data.js');
-                    console.log('✅ Đã ghi thành công vào file sheet_data.js qua ' + ep);
-                    break;
-                }
-            } catch (e) {}
+        if (!isWebHosting) {
+            const candidateBases = [
+                this.activeApiBase || null,
+                window.location.protocol.startsWith('http') ? '' : null,
+                'http://localhost:8080',
+                'http://127.0.0.1:8080',
+                'http://localhost:8081',
+                'http://localhost:8082',
+                'http://localhost:8088'
+            ].filter(b => b !== null);
+
+            const uniqueBases = Array.from(new Set(candidateBases));
+
+            for (const base of uniqueBases) {
+                try {
+                    const ep = (base === '' ? '' : base) + '/api/save';
+                    const res = await fetch(ep, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        saved = true;
+                        this.activeApiBase = base;
+                        localStorage.setItem('weblich_sheet_file_timestamp', payload.updatedAt);
+                        this.updateServerStatusBadge(true);
+                        this.showSaveNotification('Đã tự động ghi tức thì vào file sheet_data.js');
+                        console.log('✅ Đã ghi thành công vào file sheet_data.js qua ' + ep);
+                        break;
+                    }
+                } catch (e) {}
+            }
         }
 
         if (saved) return true;
 
-        // 2. Nếu đang mở file:/// và đã cấp quyền File System Access API
+        // 3. Nếu đang mở file:/// và đã cấp quyền File System Access API
         if (window.localFileHandle) {
             try {
                 const writable = await window.localFileHandle.createWritable();
@@ -828,9 +973,8 @@ const DataService = {
             }
         }
 
-        // Cảnh báo nếu không thể ghi đĩa
+        // 4. Nếu không ghi máy chủ được: Dữ liệu đã được lưu an toàn trong localStorage trình duyệt
         this.updateServerStatusBadge(false);
-        this.showSaveWarning('Chưa kết nối máy chủ start_server.bat! Dữ liệu chỉ đang tạm lưu trên trình duyệt.');
         return false;
     },
 
@@ -857,6 +1001,14 @@ const DataService = {
      * Vòng lặp đồng bộ thời gian thực giữa nhiều máy / nhiều tab
      */
     startLivePolling() {
+        const isHttps = window.location.protocol === 'https:';
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '[::1]';
+        const isFileProtocol = window.location.protocol === 'file:';
+        const isWebHosting = isHttps || (!isLocalhost && !isFileProtocol);
+
+        // Trên môi trường Web Hosting (GitHub Pages): không có endpoint /api/status cục bộ
+        if (isWebHosting) return;
+
         setInterval(async () => {
             try {
                 const base = this.activeApiBase || (window.location.protocol.startsWith('http') ? '' : 'http://localhost:8080');
