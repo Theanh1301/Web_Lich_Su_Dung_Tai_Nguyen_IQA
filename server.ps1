@@ -44,7 +44,8 @@ Write-Host "           Vien Quan Ly Chat Luong va Khao Thi                      
 Write-Host "======================================================================" -ForegroundColor Green
 Write-Host "  [+] Trang thai:      DANG HOAT DONG                                 " -ForegroundColor Green
 Write-Host "  [+] Tu dong luu:     GHI TRUC TIEP TUC THI vao sheet_data.js        " -ForegroundColor Yellow
-Write-Host "  [+] Link may nay:    http://localhost:$port/                          " -ForegroundColor Cyan
+Write-Host "  [+] Xem lich:        http://localhost:$port/                          " -ForegroundColor Cyan
+Write-Host "  [+] Trang quan tri:  http://localhost:$port/admin.html               " -ForegroundColor Cyan
 if ($localIP -ne "localhost") {
 Write-Host "  [+] Link mang LAN:   http://${localIP}:$port/ (cac may khac trong vien)" -ForegroundColor Magenta
 }

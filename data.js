@@ -421,8 +421,8 @@ const DataService = {
                 pill.style.background = '#f0fdf4';
                 pill.style.borderColor = '#86efac';
                 pill.style.color = '#15803d';
-                pill.title = 'Máy chủ nội bộ đang hoạt động. Mọi thay đổi đều tự động ghi tức thì vào file sheet_data.js. Nhấp để xem chi tiết.';
-                pill.innerHTML = '<span class="pulse-dot" style="background:#16a34a;"></span> <span>Tự động lưu: <b>Máy chủ nội bộ</b></span>';
+                pill.title = 'Máy chủ nội bộ đang hoạt động. Mọi thay đổi đều tự động ghi tức thì vào file sheet_data.js trên ổ cứng. Nhấp để xem chi tiết.';
+                pill.innerHTML = '<span class="pulse-dot" style="background:#16a34a;"></span> <span>Tự động lưu: <b>File ổ cứng (Đang kết nối)</b></span>';
                 pill.onclick = () => this.showServerGuideModal();
                 pill.style.cursor = 'pointer';
             } else if (hasGoogleSheet) {
@@ -445,8 +445,8 @@ const DataService = {
                 pill.style.background = '#fffbeb';
                 pill.style.borderColor = '#fde68a';
                 pill.style.color = '#b45309';
-                pill.title = 'Đang lưu trong trình duyệt. Mẹo: Bạn có thể nhấp đúp file start_server.bat để tự động ghi thẳng vào file. Nhấp để xem.';
-                pill.innerHTML = '<span class="pulse-dot" style="background:#f59e0b;"></span> <span>Lưu trữ: <b>Trình duyệt (Offline)</b></span>';
+                pill.title = 'Đang lưu tạm trên trình duyệt. Để ghi vĩnh viễn vào file sheet_data.js trên ổ cứng, vui lòng nhấp đúp file start_server.bat! Nhấp để xem.';
+                pill.innerHTML = '<span class="pulse-dot" style="background:#f59e0b;"></span> <span>Lưu tạm: <b>Trình duyệt (Chưa mở Server)</b></span>';
                 pill.onclick = () => this.showServerGuideModal();
                 pill.style.cursor = 'pointer';
             }
@@ -973,28 +973,33 @@ const DataService = {
             }
         }
 
-        // 4. Nếu không ghi máy chủ được: Dữ liệu đã được lưu an toàn trong localStorage trình duyệt
+        // 4. Nếu không ghi máy chủ được: Dữ liệu đã được lưu trong localStorage trình duyệt
         this.updateServerStatusBadge(false);
+        if (!isWebHosting && !window.localFileHandle) {
+            this.showSaveNotification('Dữ liệu đang tạm lưu trên trình duyệt. Hãy chạy start_server.bat để ghi vĩnh viễn vào file ổ cứng!', 'amber');
+        }
         return false;
     },
 
     /**
      * Hiển thị thông báo nhỏ khi dữ liệu được tự động ghi vào đĩa
      */
-    showSaveNotification(msg) {
+    showSaveNotification(msg, type = 'success') {
         let el = document.getElementById('weblichAutoSaveNotice');
         if (!el) {
             el = document.createElement('div');
             el.id = 'weblichAutoSaveNotice';
             document.body.appendChild(el);
         }
-        el.style.cssText = 'position:fixed; bottom:20px; left:20px; z-index:9999; background:#166534; color:#ffffff; font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:8px; transition:opacity 0.25s ease; pointer-events:none; font-family:system-ui,sans-serif;';
-        el.innerHTML = '<i class="fa-solid fa-check"></i> <span>' + msg + '</span>';
+        const isAmber = type === 'amber';
+        el.style.cssText = `position:fixed; bottom:20px; left:20px; z-index:9999; background:${isAmber ? '#b45309' : '#166534'}; color:#ffffff; font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:8px; transition:opacity 0.25s ease; pointer-events:auto; font-family:system-ui,sans-serif; cursor:pointer;`;
+        el.innerHTML = `<i class="fa-solid ${isAmber ? 'fa-circle-info' : 'fa-check'}"></i> <span>${msg}</span>`;
+        el.onclick = () => this.showServerGuideModal();
         el.style.opacity = '1';
         clearTimeout(window._saveNoticeTimer);
         window._saveNoticeTimer = setTimeout(() => {
             el.style.opacity = '0';
-        }, 2200);
+        }, isAmber ? 4000 : 2500);
     },
 
     /**
